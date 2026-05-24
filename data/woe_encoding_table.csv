@@ -1,0 +1,15 @@
+﻿Group,Category,Loans,Defaults,Default_Rate_%,WOE,Direction
+Loan Purpose,Purchase,616356,19433,3.15,0.0654,Low Risk
+Loan Purpose,Cash-out Refi,303994,12495,4.11,-0.2097,High Risk
+Loan Purpose,No-cash Refi,94201,2149,2.28,0.3976,Low Risk
+Occupancy Status,Primary Residence,937193,32563,3.47,-0.035,High Risk
+Occupancy Status,Investment,59570,1127,1.89,0.5883,Low Risk
+Occupancy Status,Second Home,17788,387,2.18,0.444,Low Risk
+Origination Channel,Retail,563133,18214,3.23,0.0391,Low Risk
+Origination Channel,Broker,148189,5406,3.65,-0.0857,High Risk
+Origination Channel,Correspondent,303228,10457,3.45,-0.0273,High Risk
+Property Type,Condo,73142,2117,2.89,0.1533,Low Risk
+Property Type,Co-op,1787,31,1.73,0.6464,Low Risk
+Property Type,Manufactured,13489,504,3.74,-0.1122,High Risk
+Property Type,PUD,268892,8787,3.27,0.0284,Low Risk
+Property Type,Single-Family,657241,22638,3.44,-0.0259,High Risk
