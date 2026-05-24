@@ -1,0 +1,16 @@
+# Raw Freddie Mac historical data (tens of GB)
+data/historical_data_*/
+
+# Large intermediate CSVs
+data/imbalanced_dataset_2023_2025.csv
+data/imbalanced_dataset_FM24_2022_2025.csv
+
+# Reference data from Mendeley
+data/参考数据格式/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Claude
+.claude/

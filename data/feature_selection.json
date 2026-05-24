@@ -1,0 +1,1074 @@
+{
+  "tier1": [
+    "Credit_Score",
+    "Mortgage_Insurance",
+    "Number_of_units",
+    "CLoan_to_value",
+    "Debt_to_income",
+    "OLoan_to_value",
+    "Single_borrower",
+    "is_Loan_purpose_purc",
+    "is_Loan_purpose_cash",
+    "is_Loan_purpose_noca",
+    "is_First_time_homeowner",
+    "is_First_time_homeowner_No",
+    "is_First_time_homeowner_miss",
+    "is_Occupancy_status_prim",
+    "is_Occupancy_status_inve",
+    "is_Occupancy_status_seco",
+    "is_Origination_channel_reta",
+    "is_Origination_channel_brok",
+    "is_Origination_channel_corr",
+    "is_Property_type_cond",
+    "is_Property_type_coop",
+    "is_Property_type_manu",
+    "is_Property_type_pud",
+    "is_Property_type_sing"
+  ],
+  "tier2": [
+    "Credit_Score",
+    "Mortgage_Insurance",
+    "Number_of_units",
+    "CLoan_to_value",
+    "Debt_to_income",
+    "OLoan_to_value",
+    "Single_borrower",
+    "is_Loan_purpose_purc",
+    "is_Loan_purpose_cash",
+    "is_Loan_purpose_noca",
+    "is_First_time_homeowner",
+    "is_First_time_homeowner_No",
+    "is_First_time_homeowner_miss",
+    "is_Occupancy_status_prim",
+    "is_Occupancy_status_inve",
+    "is_Occupancy_status_seco",
+    "is_Origination_channel_reta",
+    "is_Origination_channel_brok",
+    "is_Origination_channel_corr",
+    "is_Property_type_cond",
+    "is_Property_type_coop",
+    "is_Property_type_manu",
+    "is_Property_type_pud",
+    "is_Property_type_sing"
+  ],
+  "tier3": [
+    "Credit_Score",
+    "Single_borrower",
+    "Debt_to_income",
+    "CLoan_to_value",
+    "OLoan_to_value",
+    "is_Loan_purpose_cash",
+    "is_Occupancy_status_prim",
+    "is_Occupancy_status_inve",
+    "is_Loan_purpose_noca",
+    "is_property_state_FL",
+    "Mortgage_Insurance",
+    "is_Loan_purpose_purc",
+    "is_Occupancy_status_seco",
+    "is_Origination_channel_reta",
+    "is_Property_type_cond",
+    "is_First_time_homeowner",
+    "is_First_time_homeowner_No",
+    "is_Origination_channel_brok",
+    "is_Property_type_sing",
+    "Number_of_units",
+    "is_property_state_OH",
+    "is_property_state_TX",
+    "is_property_state_VA",
+    "is_property_state_NM",
+    "is_property_state_NC",
+    "is_property_state_GA",
+    "is_property_state_AZ",
+    "is_property_state_NH",
+    "is_Property_type_coop",
+    "is_property_state_WI",
+    "is_property_state_WA",
+    "is_property_state_KY",
+    "is_property_state_ND",
+    "is_property_state_MI",
+    "is_property_state_AL",
+    "is_property_state_TN",
+    "is_property_state_UT",
+    "is_property_state_AR",
+    "is_property_state_SC",
+    "is_property_state_OK",
+    "is_Origination_channel_corr",
+    "is_property_state_MA",
+    "is_property_state_MO",
+    "is_Property_type_pud",
+    "is_property_state_DC",
+    "is_property_state_NY",
+    "is_property_state_PA",
+    "is_Property_type_manu",
+    "is_property_state_VT",
+    "is_property_state_NE",
+    "is_property_state_KS",
+    "is_property_state_WV",
+    "is_property_state_CT",
+    "is_property_state_HI",
+    "is_property_state_NV",
+    "is_property_state_OR",
+    "is_property_state_NJ",
+    "is_property_state_MS",
+    "is_property_state_IN",
+    "is_property_state_DE",
+    "is_property_state_CA",
+    "is_property_state_ME",
+    "is_property_state_MN",
+    "is_property_state_PR",
+    "is_property_state_IL",
+    "is_property_state_WY",
+    "is_property_state_AK",
+    "is_property_state_MT",
+    "is_property_state_ID",
+    "is_property_state_SD",
+    "is_property_state_CO",
+    "is_property_state_LA",
+    "is_property_state_RI",
+    "is_property_state_MD",
+    "is_property_state_IA",
+    "is_property_state_VI"
+  ],
+  "tier4": [
+    "Credit_Score",
+    "Mortgage_Insurance",
+    "Number_of_units",
+    "CLoan_to_value",
+    "Debt_to_income",
+    "OLoan_to_value",
+    "Single_borrower",
+    "is_Loan_purpose_purc",
+    "is_Loan_purpose_cash",
+    "is_Loan_purpose_noca",
+    "is_First_time_homeowner",
+    "is_First_time_homeowner_No",
+    "is_First_time_homeowner_miss",
+    "is_Occupancy_status_prim",
+    "is_Occupancy_status_inve",
+    "is_Occupancy_status_seco",
+    "is_Origination_channel_reta",
+    "is_Origination_channel_brok",
+    "is_Origination_channel_corr",
+    "is_Property_type_cond",
+    "is_Property_type_coop",
+    "is_Property_type_manu",
+    "is_Property_type_pud",
+    "is_Property_type_sing",
+    "is_property_state_AK",
+    "is_property_state_AL",
+    "is_property_state_AR",
+    "is_property_state_AZ",
+    "is_property_state_CA",
+    "is_property_state_CO",
+    "is_property_state_CT",
+    "is_property_state_DC",
+    "is_property_state_DE",
+    "is_property_state_FL",
+    "is_property_state_GA",
+    "is_property_state_GU",
+    "is_property_state_HI",
+    "is_property_state_IA",
+    "is_property_state_ID",
+    "is_property_state_IL",
+    "is_property_state_IN",
+    "is_property_state_KS",
+    "is_property_state_KY",
+    "is_property_state_LA",
+    "is_property_state_MA",
+    "is_property_state_MD",
+    "is_property_state_ME",
+    "is_property_state_MI",
+    "is_property_state_MN",
+    "is_property_state_MO",
+    "is_property_state_MS",
+    "is_property_state_MT",
+    "is_property_state_NC",
+    "is_property_state_ND",
+    "is_property_state_NE",
+    "is_property_state_NH",
+    "is_property_state_NJ",
+    "is_property_state_NM",
+    "is_property_state_NV",
+    "is_property_state_NY",
+    "is_property_state_OH",
+    "is_property_state_OK",
+    "is_property_state_OR",
+    "is_property_state_PA",
+    "is_property_state_PR",
+    "is_property_state_RI",
+    "is_property_state_SC",
+    "is_property_state_SD",
+    "is_property_state_TN",
+    "is_property_state_TX",
+    "is_property_state_UT",
+    "is_property_state_VA",
+    "is_property_state_VI",
+    "is_property_state_VT",
+    "is_property_state_WA",
+    "is_property_state_WI",
+    "is_property_state_WV",
+    "is_property_state_WY"
+  ],
+  "iv_ranking": [
+    {
+      "feature": "Credit_Score",
+      "IV": 0.3282513647073141,
+      "IV_category": "Strong"
+    },
+    {
+      "feature": "Single_borrower",
+      "IV": 0.13063641097104062,
+      "IV_category": "Medium"
+    },
+    {
+      "feature": "Debt_to_income",
+      "IV": 0.06689917222249851,
+      "IV_category": "Weak"
+    },
+    {
+      "feature": "CLoan_to_value",
+      "IV": 0.022926707533236314,
+      "IV_category": "Weak"
+    },
+    {
+      "feature": "OLoan_to_value",
+      "IV": 0.022153368289141766,
+      "IV_category": "Weak"
+    },
+    {
+      "feature": "is_Loan_purpose_cash",
+      "IV": 0.021755592203961418,
+      "IV_category": "Weak"
+    },
+    {
+      "feature": "is_Occupancy_status_prim",
+      "IV": 0.019412097933846257,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_Occupancy_status_inve",
+      "IV": 0.01636940652286599,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_Loan_purpose_noca",
+      "IV": 0.013296286570313627,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_FL",
+      "IV": 0.01036290905512085,
+      "IV_category": "None"
+    },
+    {
+      "feature": "Mortgage_Insurance",
+      "IV": 0.007484959753580775,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_Loan_purpose_purc",
+      "IV": 0.006142783540119807,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_Occupancy_status_seco",
+      "IV": 0.002894633243757374,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_Origination_channel_reta",
+      "IV": 0.001825761581099475,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_Property_type_cond",
+      "IV": 0.0016987273356033309,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_First_time_homeowner",
+      "IV": 0.0013944675518152232,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_First_time_homeowner_No",
+      "IV": 0.0013944675518152232,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_Origination_channel_brok",
+      "IV": 0.0013137413786819027,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_Property_type_sing",
+      "IV": 0.0012922524456546118,
+      "IV_category": "None"
+    },
+    {
+      "feature": "Number_of_units",
+      "IV": 0.0012369322821558534,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_OH",
+      "IV": 0.001211584482078897,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_TX",
+      "IV": 0.0011373408749026914,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_VA",
+      "IV": 0.0010480849080622722,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_NM",
+      "IV": 0.0009718468071228428,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_NC",
+      "IV": 0.0009339470282833244,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_GA",
+      "IV": 0.0008854828121991667,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_AZ",
+      "IV": 0.0007228707694298853,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_NH",
+      "IV": 0.0006885152209507724,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_Property_type_coop",
+      "IV": 0.0005977411956513042,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_WI",
+      "IV": 0.0005726491155215398,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_WA",
+      "IV": 0.0005656975261169661,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_KY",
+      "IV": 0.0005595437843580986,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_ND",
+      "IV": 0.0005279243131938952,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_MI",
+      "IV": 0.00046181910368062553,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_AL",
+      "IV": 0.00044526185456222975,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_TN",
+      "IV": 0.00038298331043162565,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_UT",
+      "IV": 0.0003712556977703858,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_AR",
+      "IV": 0.00034935948172435066,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_SC",
+      "IV": 0.00034763650788642315,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_OK",
+      "IV": 0.0003323089903677953,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_Origination_channel_corr",
+      "IV": 0.0003234234159470371,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_MA",
+      "IV": 0.0003027906291206555,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_MO",
+      "IV": 0.00029375913688229233,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_Property_type_pud",
+      "IV": 0.00028565277094613994,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_DC",
+      "IV": 0.0002798395775248725,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_NY",
+      "IV": 0.00022631139655232736,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_PA",
+      "IV": 0.00019739162709509752,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_Property_type_manu",
+      "IV": 0.0001732136828034043,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_VT",
+      "IV": 0.00016719529858770334,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_NE",
+      "IV": 0.0001326152571643947,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_KS",
+      "IV": 0.0001259215251443748,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_WV",
+      "IV": 0.00012557121150837374,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_CT",
+      "IV": 0.00011748783985139146,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_HI",
+      "IV": 0.000106794955630069,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_NV",
+      "IV": 9.773963381794444e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_OR",
+      "IV": 9.151379497725653e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_NJ",
+      "IV": 8.473585274215954e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_MS",
+      "IV": 7.564070789201035e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_IN",
+      "IV": 6.934717345110165e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_DE",
+      "IV": 6.116148539645988e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_CA",
+      "IV": 5.373414783245532e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_ME",
+      "IV": 5.1978833289321486e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_MN",
+      "IV": 3.297547243732593e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_PR",
+      "IV": 3.143457814199595e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_IL",
+      "IV": 3.095071655873953e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_WY",
+      "IV": 3.02514929914855e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_AK",
+      "IV": 2.9376732552757974e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_MT",
+      "IV": 2.9218636349921315e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_ID",
+      "IV": 1.8147028141571922e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_SD",
+      "IV": 1.4759746143910238e-05,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_CO",
+      "IV": 9.337914021179045e-06,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_LA",
+      "IV": 6.330530814716322e-06,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_RI",
+      "IV": 3.3398607853915646e-06,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_MD",
+      "IV": 1.9984269404744194e-06,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_IA",
+      "IV": 1.0640385134683674e-06,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_GU",
+      "IV": 8.99734412712317e-09,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_property_state_VI",
+      "IV": 1.5782225393864398e-10,
+      "IV_category": "None"
+    },
+    {
+      "feature": "is_First_time_homeowner_miss",
+      "IV": 0.0,
+      "IV_category": "None"
+    }
+  ],
+  "gain_ranking": [
+    {
+      "feature": "Single_borrower",
+      "gain": 1874.803955078125,
+      "gain_pct": 15.12,
+      "cum_pct": 15.12
+    },
+    {
+      "feature": "Credit_Score",
+      "gain": 1161.6324462890625,
+      "gain_pct": 9.37,
+      "cum_pct": 24.49
+    },
+    {
+      "feature": "is_Loan_purpose_cash",
+      "gain": 426.13330078125,
+      "gain_pct": 3.44,
+      "cum_pct": 27.93
+    },
+    {
+      "feature": "Debt_to_income",
+      "gain": 389.4968566894531,
+      "gain_pct": 3.14,
+      "cum_pct": 31.07
+    },
+    {
+      "feature": "CLoan_to_value",
+      "gain": 358.0816955566406,
+      "gain_pct": 2.89,
+      "cum_pct": 33.96
+    },
+    {
+      "feature": "is_property_state_FL",
+      "gain": 352.8089294433594,
+      "gain_pct": 2.85,
+      "cum_pct": 36.81
+    },
+    {
+      "feature": "is_Occupancy_status_prim",
+      "gain": 342.7256774902344,
+      "gain_pct": 2.76,
+      "cum_pct": 39.57
+    },
+    {
+      "feature": "OLoan_to_value",
+      "gain": 240.72689819335938,
+      "gain_pct": 1.94,
+      "cum_pct": 41.51
+    },
+    {
+      "feature": "is_Origination_channel_reta",
+      "gain": 216.52700805664062,
+      "gain_pct": 1.75,
+      "cum_pct": 43.26
+    },
+    {
+      "feature": "is_property_state_CA",
+      "gain": 215.4852294921875,
+      "gain_pct": 1.74,
+      "cum_pct": 45.0
+    },
+    {
+      "feature": "is_Loan_purpose_noca",
+      "gain": 202.56785583496094,
+      "gain_pct": 1.63,
+      "cum_pct": 46.63
+    },
+    {
+      "feature": "is_Loan_purpose_purc",
+      "gain": 200.7918701171875,
+      "gain_pct": 1.62,
+      "cum_pct": 48.25
+    },
+    {
+      "feature": "is_First_time_homeowner",
+      "gain": 188.55264282226562,
+      "gain_pct": 1.52,
+      "cum_pct": 49.77
+    },
+    {
+      "feature": "is_property_state_OH",
+      "gain": 187.6458740234375,
+      "gain_pct": 1.51,
+      "cum_pct": 51.28
+    },
+    {
+      "feature": "Mortgage_Insurance",
+      "gain": 186.97671508789062,
+      "gain_pct": 1.51,
+      "cum_pct": 52.79
+    },
+    {
+      "feature": "is_Occupancy_status_inve",
+      "gain": 172.5606689453125,
+      "gain_pct": 1.39,
+      "cum_pct": 54.18
+    },
+    {
+      "feature": "is_property_state_UT",
+      "gain": 165.79635620117188,
+      "gain_pct": 1.34,
+      "cum_pct": 55.52
+    },
+    {
+      "feature": "is_property_state_AK",
+      "gain": 154.24407958984375,
+      "gain_pct": 1.24,
+      "cum_pct": 56.760000000000005
+    },
+    {
+      "feature": "is_First_time_homeowner_No",
+      "gain": 147.51190185546875,
+      "gain_pct": 1.19,
+      "cum_pct": 57.95
+    },
+    {
+      "feature": "is_property_state_IN",
+      "gain": 143.6282501220703,
+      "gain_pct": 1.16,
+      "cum_pct": 59.11
+    },
+    {
+      "feature": "is_property_state_TX",
+      "gain": 143.4138641357422,
+      "gain_pct": 1.16,
+      "cum_pct": 60.269999999999996
+    },
+    {
+      "feature": "is_property_state_AZ",
+      "gain": 142.59445190429688,
+      "gain_pct": 1.15,
+      "cum_pct": 61.419999999999995
+    },
+    {
+      "feature": "is_property_state_OR",
+      "gain": 140.02255249023438,
+      "gain_pct": 1.13,
+      "cum_pct": 62.55
+    },
+    {
+      "feature": "is_property_state_NM",
+      "gain": 123.36724853515625,
+      "gain_pct": 0.99,
+      "cum_pct": 63.54
+    },
+    {
+      "feature": "is_Property_type_cond",
+      "gain": 113.8255386352539,
+      "gain_pct": 0.92,
+      "cum_pct": 64.46
+    },
+    {
+      "feature": "is_property_state_MN",
+      "gain": 113.49547576904297,
+      "gain_pct": 0.92,
+      "cum_pct": 65.38
+    },
+    {
+      "feature": "is_Property_type_pud",
+      "gain": 109.70694732666016,
+      "gain_pct": 0.88,
+      "cum_pct": 66.25999999999999
+    },
+    {
+      "feature": "is_property_state_MO",
+      "gain": 108.33802032470703,
+      "gain_pct": 0.87,
+      "cum_pct": 67.13
+    },
+    {
+      "feature": "is_property_state_PA",
+      "gain": 107.52378845214844,
+      "gain_pct": 0.87,
+      "cum_pct": 68.0
+    },
+    {
+      "feature": "is_property_state_WI",
+      "gain": 106.59110260009766,
+      "gain_pct": 0.86,
+      "cum_pct": 68.86
+    },
+    {
+      "feature": "is_property_state_VA",
+      "gain": 106.27632904052734,
+      "gain_pct": 0.86,
+      "cum_pct": 69.72
+    },
+    {
+      "feature": "is_property_state_MI",
+      "gain": 106.23470306396484,
+      "gain_pct": 0.86,
+      "cum_pct": 70.58
+    },
+    {
+      "feature": "is_property_state_NY",
+      "gain": 105.97628784179688,
+      "gain_pct": 0.85,
+      "cum_pct": 71.42999999999999
+    },
+    {
+      "feature": "is_property_state_SC",
+      "gain": 103.77677154541016,
+      "gain_pct": 0.84,
+      "cum_pct": 72.27
+    },
+    {
+      "feature": "is_property_state_NV",
+      "gain": 100.58358001708984,
+      "gain_pct": 0.81,
+      "cum_pct": 73.08
+    },
+    {
+      "feature": "is_property_state_NH",
+      "gain": 100.09492492675781,
+      "gain_pct": 0.81,
+      "cum_pct": 73.89
+    },
+    {
+      "feature": "is_property_state_MT",
+      "gain": 100.07472229003906,
+      "gain_pct": 0.81,
+      "cum_pct": 74.7
+    },
+    {
+      "feature": "is_property_state_MA",
+      "gain": 99.69666290283203,
+      "gain_pct": 0.8,
+      "cum_pct": 75.5
+    },
+    {
+      "feature": "is_property_state_GA",
+      "gain": 97.12784576416016,
+      "gain_pct": 0.78,
+      "cum_pct": 76.28
+    },
+    {
+      "feature": "is_property_state_WA",
+      "gain": 96.47135925292969,
+      "gain_pct": 0.78,
+      "cum_pct": 77.06
+    },
+    {
+      "feature": "is_Property_type_sing",
+      "gain": 96.3870620727539,
+      "gain_pct": 0.78,
+      "cum_pct": 77.84
+    },
+    {
+      "feature": "is_property_state_CT",
+      "gain": 96.06401062011719,
+      "gain_pct": 0.77,
+      "cum_pct": 78.61
+    },
+    {
+      "feature": "is_property_state_KY",
+      "gain": 95.7897720336914,
+      "gain_pct": 0.77,
+      "cum_pct": 79.38
+    },
+    {
+      "feature": "is_property_state_SD",
+      "gain": 95.41474151611328,
+      "gain_pct": 0.77,
+      "cum_pct": 80.14999999999999
+    },
+    {
+      "feature": "is_property_state_ND",
+      "gain": 91.04021453857422,
+      "gain_pct": 0.73,
+      "cum_pct": 80.88
+    },
+    {
+      "feature": "is_Origination_channel_brok",
+      "gain": 90.1255874633789,
+      "gain_pct": 0.73,
+      "cum_pct": 81.61
+    },
+    {
+      "feature": "is_property_state_CO",
+      "gain": 88.85269165039062,
+      "gain_pct": 0.72,
+      "cum_pct": 82.33
+    },
+    {
+      "feature": "is_property_state_AL",
+      "gain": 88.63026428222656,
+      "gain_pct": 0.71,
+      "cum_pct": 83.03999999999999
+    },
+    {
+      "feature": "is_property_state_NJ",
+      "gain": 88.4200439453125,
+      "gain_pct": 0.71,
+      "cum_pct": 83.74999999999999
+    },
+    {
+      "feature": "is_property_state_NC",
+      "gain": 87.58365631103516,
+      "gain_pct": 0.71,
+      "cum_pct": 84.45999999999998
+    },
+    {
+      "feature": "is_property_state_MD",
+      "gain": 86.59011840820312,
+      "gain_pct": 0.7,
+      "cum_pct": 85.15999999999998
+    },
+    {
+      "feature": "is_property_state_KS",
+      "gain": 85.54234313964844,
+      "gain_pct": 0.69,
+      "cum_pct": 85.84999999999998
+    },
+    {
+      "feature": "is_property_state_WV",
+      "gain": 85.11993408203125,
+      "gain_pct": 0.69,
+      "cum_pct": 86.53999999999998
+    },
+    {
+      "feature": "is_property_state_DE",
+      "gain": 84.34326171875,
+      "gain_pct": 0.68,
+      "cum_pct": 87.21999999999998
+    },
+    {
+      "feature": "is_property_state_IL",
+      "gain": 82.8247299194336,
+      "gain_pct": 0.67,
+      "cum_pct": 87.88999999999999
+    },
+    {
+      "feature": "is_property_state_TN",
+      "gain": 82.60986328125,
+      "gain_pct": 0.67,
+      "cum_pct": 88.55999999999999
+    },
+    {
+      "feature": "is_property_state_RI",
+      "gain": 81.01839447021484,
+      "gain_pct": 0.65,
+      "cum_pct": 89.21
+    },
+    {
+      "feature": "is_property_state_AR",
+      "gain": 80.9679183959961,
+      "gain_pct": 0.65,
+      "cum_pct": 89.86
+    },
+    {
+      "feature": "is_property_state_MS",
+      "gain": 80.9253158569336,
+      "gain_pct": 0.65,
+      "cum_pct": 90.51
+    },
+    {
+      "feature": "is_property_state_DC",
+      "gain": 80.84447479248047,
+      "gain_pct": 0.65,
+      "cum_pct": 91.16000000000001
+    },
+    {
+      "feature": "is_property_state_HI",
+      "gain": 78.37168884277344,
+      "gain_pct": 0.63,
+      "cum_pct": 91.79
+    },
+    {
+      "feature": "is_property_state_OK",
+      "gain": 77.65290069580078,
+      "gain_pct": 0.63,
+      "cum_pct": 92.42
+    },
+    {
+      "feature": "is_property_state_NE",
+      "gain": 77.62381744384766,
+      "gain_pct": 0.63,
+      "cum_pct": 93.05
+    },
+    {
+      "feature": "Number_of_units",
+      "gain": 76.49382019042969,
+      "gain_pct": 0.62,
+      "cum_pct": 93.67
+    },
+    {
+      "feature": "is_property_state_VI",
+      "gain": 76.4506607055664,
+      "gain_pct": 0.62,
+      "cum_pct": 94.29
+    },
+    {
+      "feature": "is_property_state_WY",
+      "gain": 75.27954864501953,
+      "gain_pct": 0.61,
+      "cum_pct": 94.9
+    },
+    {
+      "feature": "is_property_state_VT",
+      "gain": 72.5682144165039,
+      "gain_pct": 0.59,
+      "cum_pct": 95.49000000000001
+    },
+    {
+      "feature": "is_Property_type_manu",
+      "gain": 72.38689422607422,
+      "gain_pct": 0.58,
+      "cum_pct": 96.07000000000001
+    },
+    {
+      "feature": "is_property_state_LA",
+      "gain": 70.64683532714844,
+      "gain_pct": 0.57,
+      "cum_pct": 96.64
+    },
+    {
+      "feature": "is_property_state_ME",
+      "gain": 67.83123779296875,
+      "gain_pct": 0.55,
+      "cum_pct": 97.19
+    },
+    {
+      "feature": "is_Property_type_coop",
+      "gain": 64.0941162109375,
+      "gain_pct": 0.52,
+      "cum_pct": 97.71
+    },
+    {
+      "feature": "is_property_state_PR",
+      "gain": 60.641815185546875,
+      "gain_pct": 0.49,
+      "cum_pct": 98.19999999999999
+    },
+    {
+      "feature": "is_property_state_ID",
+      "gain": 58.826454162597656,
+      "gain_pct": 0.47,
+      "cum_pct": 98.66999999999999
+    },
+    {
+      "feature": "is_Origination_channel_corr",
+      "gain": 57.1597785949707,
+      "gain_pct": 0.46,
+      "cum_pct": 99.12999999999998
+    },
+    {
+      "feature": "is_Occupancy_status_seco",
+      "gain": 56.420650482177734,
+      "gain_pct": 0.45,
+      "cum_pct": 99.57999999999998
+    },
+    {
+      "feature": "is_property_state_IA",
+      "gain": 54.93471908569336,
+      "gain_pct": 0.44,
+      "cum_pct": 100.01999999999998
+    },
+    {
+      "feature": "is_property_state_GU",
+      "gain": 0.0,
+      "gain_pct": 0.0,
+      "cum_pct": 100.01999999999998
+    },
+    {
+      "feature": "is_First_time_homeowner_miss",
+      "gain": 0.0,
+      "gain_pct": 0.0,
+      "cum_pct": 100.01999999999998
+    }
+  ]
+}

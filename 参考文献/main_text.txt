@@ -1,0 +1,1084 @@
+
+=== PAGE 1 ===
+ExpertSystemsWithApplications238(2024)121876
+Contents lists available at ScienceDirect
+Expert Systems With Applications
+journal homepage: www.elsevier.com/locate/eswa
+Flexible loss functions for binary classification in gradient-boosted decision
+trees: An application to credit scoring
+Jonah Mushava*, Michael Murray
+School of Mathematics, Statistics and Computer Science, University of KwaZulu-Natal, Westville Campus, Private Bag X54001, Durban 4000, South Africa
+A R T I C L E I N F O A B S T R A C T
+Keywords: This paper introduces new flexible loss functions for binary classification in Gradient-Boosted Decision Trees
+Class imbalance (GBDT) that combine Dice-based and cross-entropy-based losses and offer link functions from either a general-
+Machine learning ized extreme value (GEV) or exponentiated exponential logistic (EEL) distribution. Testing 27 different GBDT
+Credit scoring
+models using XGBoost on a Freddie Mac mortgage loan database showed that the choice of the loss function is
+XGBoost
+useful. Specifically, when the class imbalance ratio (IR) is less than 99, using a skewed GEV distribution-based
+Freddie Mac
+link function in XGBoost enhances discriminatory power and classification accuracy while retaining a simple
+model structure, which is particularly important in credit scoring applications. In cases where class imbalances
+are severe, typically between IRs of 99 and 200, we found that an advanced loss function, which is composed of a
+symmetric hybrid loss function and a link derived from a positively skewed EEL distribution, outperforms other
+XGBoost variants. Based on our findings, the accuracy improvements of these proposed extensions result in lower
+misclassification costs, which are especially evident when IR is below 99, which results in higher profitability for
+the business. Furthermore, the study highlights the transparency associated with GBDT, which is also an integral
+component of financial applications. Researchers and practitioners can use these insights to create more accurate
+and discriminative machine learning models, with possible extensions to other GBDT implementations and
+machine learning techniques that take into account loss functions. The source code for the proposed approach is
+publicly available at https://github.com/jm-ml/flexible-losses-for-binary-classification-with-GBDT.
+1. Introduction Henkel, Onodera, Liu, & Erdem, 2020). Additionally, recent Women in
+Data Science Datathon challenges have been won by ensembles domi-
+Gradient boosting algorithms are popular in machine learning due to nated by XGBoost and LightGBM (Cohen, Dagan, Cohen-Inger, Ofer, &
+their ability to achieve high predictive power and scalability to diverse Rokach, 2021). In the premier annual Knowledge Discovery in Data-
+problems. In essence, gradient boosting involves constructing an bases competition held in 2022, LightGBM was among the top three
+ensemble predictor by iteratively combining weak models (base winning solutions for classification tasks (Wu, Liu, Gazo, Bedrich, & Qu,
+learners) greedily (Friedman, 2001). Among the popular base learners 2022; Zhang, Zheng, Yan, Li, Hu, Zhou, & Liu, 2022). These achieve-
+are decision trees due to their simplicity and non-parametric nature. ments demonstrate the effectiveness of GBDT for classification tasks.
+Gradient boosting with decision trees is known as Gradient-Boosted The use of GBDT in classification tasks is, however, restricted by the
+Decision Trees (GBDT). GBDT has been implemented in several ways, use of a classic cross-entropy loss in conjunction with a logit link.
+the most recent of which include XGBoost (T. Chen & Guestrin, 2016), Focussing on a binary 0/1 classification problem, the logit link function
+LightGBM (Ke et al., 2017) and CatBoost (Dorogush, Ershov, & Gulin, first converts model predictions into a number between 0 and 1, before
+2018). the cross-entropy loss quantifies how close the probabilistic predictions
+Recent machine learning competitions focusing on classification are to the class label. There are several limitations associated with bi-
+tasks have been won by ensembles that use GBDT. For instance, XGBoost nary class cross-entropy. These include bias towards the majority class in
+alone won the Recommender Systems 2020 challenge, while a combi- class-imbalanced data (Jadon, 2020), inability to distinguish between
+nation of XGBoost and deep neural networks won the 2021 challenge “easy-to-classify” and “hard-to-classify” cases (Lin, Goyal, Girshick, He,
+(Deotte, Liu, Schifferer, & Titericz, 2021; Schifferer, Titericz, Deotte, & Doll´ar, 2017), and symmetric loss components for each class (Li,
+* Corresponding author.
+E-mail addresses: 208525323@stu.ukzn.ac.za (J. Mushava), murraym@ukzn.ac.za (M. Murray).
+https://doi.org/10.1016/j.eswa.2023.121876
+Received 30 March 2023; Received in revised form 22 August 2023; Accepted 26 September 2023
+Availableonline2October2023
+0957-4174/©2023TheAuthor(s).PublishedbyElsevierLtd.ThisisanopenaccessarticleundertheCCBYlicense(http://creativecommons.org/licenses/by/4.0/).
+
+=== PAGE 2 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+Kamnitsas, & Glocker, 2019). A logit link also has a major limitation, XGBoost, which gives users the option to use either a weighted cross-
+which is that it is symmetric around 0.5. This means that the probabil- entropy or a Focal loss in XGBoost. Trisanto, Rismawati, Mulya, and
+ities approach 0 and 1 at the same rate (M.-H. Chen, Dey, & Shao, 1999). Kurniadi (2021) proposed a modified version of the Focal loss function
+When one class is underrepresented, the logit becomes inappropriate that incorporates class weights for use in XGBoost. In our previous work
+since the probabilities of the minority group will be underestimated (Mushava & Murray, 2022), we reported superior results by pairing a
+(Calabrese, Marra, & Angela Osmetti, 2016). modified Focal loss with a link function based on the standard GEV
+To improve the predictive power of GBDT in class-imbalanced data distribution in XGBoost.
+settings, two generalizations are proposed in this study. We first adapt In the context of highly class-imbalanced data, selecting the right loss
+the Unified Focal (UF) loss function by Yeung, Sala, Scho¨nlieb, and function is crucial to ensure that even the edge cases are taken into
+Rundo (2022), to GBDT. The UF loss contains several loss functions account. One example of this is image segmentation problems, which are
+designed for handling class-imbalance data learning as special cases, often associated with high-class imbalance. To address this issue,
+thus eliminating the need to try multiple loss functions. Secondly, we specialized loss functions have been developed to train artificial neural
+propose the use of flexible link functions that can be symmetric, posi- networks in computer vision applications (Jadon, 2020). Image seg-
+tively or negatively skewed, depending on the classification problem. mentation involves assigning a label to every pixel in an image so that
+We examine both link functions derived from a generalized extreme pixels with the same label share similar characteristics. For example, in
+value distribution (Coles, Bawa, Trenner, & Dorazio, 2001; Kotz & medical image segmentation for oncology, the tumour is typically much
+Nadarajah, 2000), as well as those derived from a new class of gener- smaller than its host organ, resulting in a high-class imbalance. Recently,
+alized logistic distributions (Ghosh & Alzaatreh, 2018). The proposed Yeung et al. (2022) proposed a UF loss to handle class-imbalanced
+changes aim to provide GBDT with more flexible loss functions, espe- medical image segmentation. The UF loss is a hybrid of generaliza-
+cially for the handling of class imbalance data. tions of Dice and cross-entropy loss functions, which eliminates the need
+The rest of the paper is organized as follows: Section 2 discusses to test multiple loss functions independently. The flexible loss function
+related works and places the study in the context of the current litera- employed in this study is based on the UF loss.
+ture. Section 3 provides an overview of XGBoost for binary classifica- Most researchers focus on customizing loss functions, but little
+tion, which will be used as a reference implementation of GBDT. In attention has been paid to customizing the associated link function. In
+Section 4, we unpack the loss-and-link function extensions that we are binomial regression, link functions are derived from the inverse cumu-
+proposing. To gain a better understanding of the influence of class lative distribution function (c.d.f) of a random distribution, such as the
+imbalance on our proposed extensions, a simulation study is performed logit, which corresponds to the inverse c.d.f of the standard logistic
+in Section 5. We then apply our models to real-life data in Section 6. distribution (Prasetyo, Kuswanto, Iriawan, & Ulama, 2020). In this
+Finally, Section 7 concludes the study. study, flexible link functions for GBDT are proposed that can be nega-
+tively or positively skewed, or symmetrical with light or heavy tails.
+2. Related works Specifically, we examine links derived from the generalized extreme
+value (GEV) distribution and a new class of generalized logistic distri-
+In the literature, there are three common approaches for modelling butions derived from the exponentiated exponential logistic (EEL) dis-
+class imbalance in datasets: algorithmic modifications, data rebalancing, tribution. With the GEV distribution, based on extreme value theory, one
+or a combination of both (Krawczyk, 2016). One leading approach to can fit the parameters that best explain the probability distribution of
+algorithmic modification is to penalize the misclassification of minority extreme/rare events (Coles et al., 2001; Kotz & Nadarajah, 2000). On
+cases, such as in Xia, Liu, and Liu (2017), Zhou, Yao, Wen, Wang, Zhou, the other hand, the EEL distribution is a new class of generalized logistic
+He, and Liang (2017), or (Kim et al., 2019). On the other hand, data distribution proposed by Ghosh and Alzaatreh (2018). It is obtained by
+rebalancing methods focus on oversampling the minority class to bal- mixing two distributions: the exponentiated exponential and the logistic
+ance the dataset before training a model. Synthetic Minority Over- distribution using the technique proposed by Alzaatreh, Lee, and
+sampling Technique (SMOTE) is a well-established data rebalancing Famoye (2013).
+technique that generates artificial minority cases (Ferna´ndez, Garcia, GBDT implementations do not automatically calculate the partial
+Herrera, & Chawla, 2018). In recent years, Generative Adversarial derivatives of the loss function, also known as gradient statistics, that are
+Neural Networks (GANs) have gained prominence for their ability to required for the splitting rules in the decision tree. Consequently, con-
+rebalance data by creating fake minority cases (Sampath, Maurtua, structing gradient statistics algebraically is a challenging task in
+Aguilar Martin, & Gutierrez, 2021). adapting the UF loss to GBDT, either with a link function derived from
+Batista, Bazzan, and Monard (2003) further proposed cleaning the the GEV or EEL distributions. To facilitate reusability and extensibility,
+rebalanced data using undersampling techniques such as edited nearest we have published the gradient statistics on GitHub, which can be
+neighbours (ENN) and Tomek links (TL). With ENN, cases whose class applied to other GDBT implementations such as CatBoost and LightGBM.
+labels differ from the majority of their K-nearest neighbours (NN) are The main contributions of this paper can be summarized as follows:
+removed from the data. Comparatively, the TL method uses the 1-NN
+rule to locate pairs of opposite-class labels that are closest to one • Adaptation of a hybrid UF loss function to XGBoost, which reduces
+another and removes only instances belonging to the majority class. On the requirement for testing multiple loss functions,
+the other hand, hybrid methods, such as balanced random forest (BRF) • Integration of GEV and EEL distribution-based link functions into the
+(O’Brien & Ishwaran, 2019) and EasyEnsemble (Liu, Wu, & Zhou, 2008), UF loss to allow more flexibility in specifying the symmetry or
+combine algorithmic and data rebalancing approaches by training en- asymmetry of the links,
+sembles of CART (L Breiman, Friedman, Olshen, & Stone, 1984) and • The derivation and publication of algebraic gradient statistics
+AdaBoost (Schapire, 1999), with re-balanced bootstrap samples. applicable to GBDT in general.
+This study aims to implement algorithmic modifications to GDBT,
+taking the XGBoost implementation as a starting point. XGBoost has also 3. Xgboost overview
+been modified algorithmically in the following studies. Xia et al. (2017)
+proposed using a cost-sensitive link function in XGBoost for credit The following is a brief overview of the XGBoost implementation of
+scoring. The rationale for using this approach is that in credit scoring, it GBDT focusing on two class problems. Using strategies such as One-
+is more costly to grant credit to a borrower who ends up defaulting than versus-All (OVA) or One-versus-One (OVO), most binary classification
+the opportunity cost of rejecting a potentially good borrower. Wang, problems can be transformed into multi-class classification problems
+Deng, and Wang (2020) presented a Python package called Imbalance- (Murphy, 2012, p. 503).
+2
+
+=== PAGE 3 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+Let x i=(x1i,x2i⋯xpi)be a p-dimensional vector where xji denotes the into a left child node IL and right child nodes IR is
+tpa ht rt eor ibi rb l e lu omt ae ,
+n
+o a (f pv t a oh r se i ia tf ibe vla eet u cy lr i ae w
+s
+sx i )lj l
+i
+f b no e r
+a
+s a ge t ig
+v
+i t ev o ne 1n
+o
+i uc f a tc cs a oe s mei. i
+e
+I w n
+w
+ao is nu o dr b ob s wi en ,r a v or e ty hd
+e
+c t rl oa
+w
+s d is e si effi a c yua
+i
+lt t wi oo ilnn
+l
+gain=( (cid:0) )1
+2 ]H
+jG ∈I2 j∈ +I λ+γ) (cid:0) [( (cid:0) 1
+2H
+jG ∈IL2 j∈I +L λ+γ) +( (cid:0) 1
+2H
+jG ∈IR2 j∈I +R
+λ
+be set to 0 (negative class). Consequently, a model development sample
+with N cases takes the form:
+S={
+x
+i,yi}
+N i=1. Thesub-
++γ
+scriptiisoccasionallydroppedwheneverthe context is clear.
+[ ]
+The XGBoost model is structured as follows: ⇒gain=1 G2 j∈IL + G2 j∈IR (cid:0) G2 j∈I (cid:0) γ (8)
+̂y=∑T
+f t(x) (1)
+2 H j∈IL+λ H j∈IR+λ H j∈I+λ
+t=1 XGBoost constructs each base learner tree by recursively partitioning
+where ft denotes regression tree base learners that need to be trained
+the data using split{ting rule (8}) until a pre-defined stopping rule. To find
+sequentially over T rounds/iterations. The objective function that needs that variable xj∈ x1,x2⋯xp and its attribute that leads to the largest
+to be minimized in each iteration is as follows: gain when used to split a node, XGBoost uses either an exact greedy
+algorithm or an approximate algorithm (see T. Chen and Guestrin
+∑N ( )
+L(t)= l y i,̂y( it(cid:0)1)+f t(x i) +Ω(f t) (2) (2016) for further details).
+i=1
+where l(•)is a loss function and Ω(•)is a regularization term. At 4. Proposed flexible loss and link functions
+each iteration t, the goal is to add ft(x i)to the current model ̂y(
+i
+t(cid:0)1) that
+GBDT algorithms such as XGBoost rely on the following cross-
+minimizes the loss compared to the true class yi for all training samples i.
+entropy loss function for binary classification:
+Simultaneously, to avoid over-fitting,
+1 ∑N
+Ω(f
+t)=γL+1 2λ∑L
+w2 j (3)
+l(y i,̂y i)=(cid:0)
+N
+i=1{y iln̂p i+(1(cid:0) y i)ln(1(cid:0) ̂p i)} (9)
+j=1
+where ̂pi is the conversion of the model prediction (cid:0) ∞<̂yi<∞ to
+Controls the complexity of the regression trees. This complexity can probability via the standard logistic link function:
+be measured using L, which represents the number of leaves in the tree,
+1
+w w,
+h
+w ich hi c ah
+re
+r e rep are l-s ve an lt us
+e
+t dh e
+p
+aw rae migh ett
+e
+a rs ss
+.
+igned to each leaf, as well as γ and λ, ̂p i=p(y i=1|̂y i)=
+1+e(cid:0)ˆyi
+(10)
+It can be shown using a second-order Taylor approximation and It can be shown that the gradient and hessian of the loss (9) with link
+removing terms independent of ft that the objective function (2) can be (10) are gi=̂pi(cid:0) yi and hi = ̂pi(1(cid:0) ̂pi), respectively. This section pre-
+simplified to: sents more flexible loss and link functions as well as the associated
+∑N 1 gradient statistics.
+L(t) ≅ g if t(x i)+ 2h if t2(x i)+Ω(f t) (4)
+i=1
+4.1. Flexible loss functions
+where gi=∂l(y ∂̂i y,̂ ( iy t(cid:0)( it(cid:0) 1)1)) and hi=∂2l( ∂2y ̂i y,̂ ( iy t(cid:0)( it 1(cid:0) )1)) are the first and second-order
+Loss functions are mathematical representations of the objective of a
+partial derivatives of the loss function, respectively. training problem. Choosing the correct loss function is vital, especially
+Letting Ij denote the number of cases that land in leaf j of ft, objective when dealing with highly imbalanced data, to ensure that all cases,
+(4) can be re-written as a quadratic function of the leaf scores wj: including those at the edges, are considered. Using cross-entropy and
+[( ) ( ) ] Dice-based losses, we will create a hybrid function, which is more
+L̃(t) =∑L ∑ g i w j+1 2 ∑ h i+λ w2 j +γL (5) adaptable to the classification task at hand.
+j=1 i∈Ij i∈Ij
+4.1.1. Cross entropy-based loss function
+It can be shown by differentiating equation (5) with respect to w and
+The general form of the binary class cross-entropy-based loss func-
+setting the result to 0 that the optimal leaf weights are:
+tions is given by the following modified/weighted Focal loss function
+∑
+w* j = wh(cid:0) er∑
+e
+i G∈I
+jji∈ h =I ijg + ∑i λ i∈= Ijgi(cid:0) anH djG + Hj jλ
+=∑
+i∈Ijhi. Therefore, gradient
+statistics( 6 g)
+i
+(
+l
+mL Fin (y,
+i
+,G ̂yo i)ya =l, (cid:0)G N1irs ∑ ih =Ni 1c {k y,
+i
+αH 1e (,
+1
+&
+(cid:0)
+D
+̂p
+io )l γl 1´a lnr,
+̂p
+2 i+01 (7 1)
+(cid:0) y i)̂pγ i1ln(1(cid:0) ̂p i)} (11)
+and hi, also known as the gradient and hessian, respectively, are central where α∈R controls the class weights and ,γ∈R controls the degree
+to the customisation of the loss functions. of down-weighting of the loss of the well-classified (i.e. “easy-to-clas-
+Back-substituting (6) into (5) gives the optimal loss score for a tree sify”) cases. Cases are well-classified if the predicted probability of their
+structure q as: assigned class label exceeds 0.5.
+L̃(t) (q)= (cid:0) 1 2∑L HG +2 j λ+γT (7) SettT inh ge γb 1in =ar 0y ic nr o (s 1s 1 e ) n pt rr oo dp uy c( e9 s) ai s w th eie g hsp tee dci a bl i nc aa rs ye : cα ro1 s= s e1 n a trn od p yγ 1 w= hi0 le.
+j=1 j setting α 1=1 gives the standard Focal loss function. Fig. 1 illustrates the
+where the lowest value is sought. Therefore, the impurity for a single effect of the parameters α 1 and γ 1 by varying them in turn for the pos-
+itive class, y =1.
+node/leaf can be quantified using:
+To avoid the suppression of the loss contribution of the minority
+(cid:0) 1 G2 j +γ class, Li, Kamnitsas, and Glocker (2019) suggested removing the focal
+2H j+λ parameter from the loss function component that relates to the minority
+class. By doing so, equation (11) becomes asymmetric, thereby pro-
+The gain (or reduction in the impurity) of parent node I after its split
+longing minority cases at the decision boundary, viz
+3
+
+=== PAGE 4 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+Fig. 1. Relative to the binary cross-entropy (black solid line): a) as γ 1>0 increases, the more the loss function focuses on “hard-to-classify” cases and b) when
+α 1>1, the loss function assigns a higher penalty to the misclassification of the positive class and vice versa.
+1 ∑N is the Tversky index associated with class k (Salehi, Erdogmus, &
+l maF0(y i,̂y i)=(cid:0) N i=1{y iα 1(1(cid:0) ̂p i)ln̂p i+(1(cid:0) y i)̂pγ i1ln(1(cid:0) ̂p i)} (12) G
+y
+ikh (o 1li (cid:0)po ̂pu ikr ), a2 r0 e1 7 fa) l.
+s
+eIn
+n
+t eh ge
+a
+tT ivv ee sr s (k Fy
+N
+i )n
+,
+d ae nx d, (y 1ik (cid:0)̂pik
+y
+ia kr )e
+̂p
+ikt r au re
+e
+p fao ls si eti v pe os
+s
+i( tT ivP e) s,
+As a further experiment, we will use an asymmetric loss function to (FP). Therefore (15) does not take into account true negatives (TN):
+remove well-classified minorities from the decision boundary, so that (1(cid:0) y ik)(1(cid:0) ̂pik). LFT is asymmetric by design TI=0 when y
+ik
+=0. Dice-
+the model focuses on hard-to-classify minority cases, viz based loss functions are beneficial because they allow for focusing on
+1 ∑N one particular class during the model training process.
+l maF1(y i,̂y i)=(cid:0)
+N
+{y iα 1(1(cid:0) ̂p i)γ1ln̂p i+(1(cid:0) y i)̂p iln(1(cid:0) ̂p i)} (13) Setting γ 2=1 gives the classical Tversky loss function and adding
+i=1 α 2=β=0.5 simplifies it to the Dice loss function, i.e.
+2TP
+4.1.2. Dice-based loss function Dice= (16)
+2TP+FP+FN
+The general form of the Dice-based loss function is given by the
+following Focal Tversky loss function (Abraham & Khan, 2019) Fig. 2 illustrates the effect of the parameters γ 2, α 2 and β on the Focal
+L FT = ∑ (1(cid:0) TI k)γ1 2 (14) Tversky loss function by varying them in turn.
+k∈{0,1}
+4.1.3. Hybrid loss function
+where γ ∈R is a focal parameter and The hybrid loss function combines the cross-entropy and Dice-based
+2
+∑ losses as follows:
+N y ̂p
+TI k=∑ N y ̂p +α ∑ N y (i 1=1 (cid:0)ik ̂pik )+β∑ N (1(cid:0) y )̂p (15) L UF=πL F+(1(cid:0) π)L FT (17)
+i=1 ik ik 2 i=1 ik ik i=1 ik ik
+Fig. 2. Relative to the dice loss (black solid line): a) when 0<γ 2<1, the loss function focuses more on hard-to-classify cases, whereas when γ 2>1 it enhances the
+loss of easy-to-classify cases, and b) setting β>α 2 assigns more penalty to false negatives and is useful when there is a high level of class imbalance.
+4
+
+=== PAGE 5 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+{ }
+funcw tih oe nr e
+v
+eL rF si∈ onsl m inF, (lm 1a 1F )0 -, (l 1m 3aF )1
+,
+LFd Te tn ho et e Fs
+o
+ca an ly
+T
+vch ero si kc ye lo of
+s
+st h (1e
+4
+)F ,o ac na dl l 0os ≤s ⎧ ⎪⎨( 1+τ( ̂y(cid:0)
+σ
+μ)) (cid:0)1 τ,τ∕=0
+π th≤
+at
+1 td he et e hrm ypin ere ps at rh ae
+m
+r ee tl ea rti v se
+e
+tw e oi fg h tt
+h
+o ef t hh ye
+b
+c ro idm p loo sn se n ft
+u
+nlo cs ts ie os n. It
+is
+f o Φllo =ws t(̂y)= ⎪⎩ e(cid:0)(
+ˆy(cid:0)
+σμ)
+,τ=0
+(24)
+{α 1,α 2,γ 1,γ 2,β,π}.
+Yeung et al. (2022) proposed a so-called UF loss function for se- Nested within the GEV distribution are three types of extreme value
+mantic segmentation that combines functionally equivalent hyper- distributions. The type I case is the Gumbel family of distributions given
+parameters in a hybrid of the Focal loss and the Focal Tversky. A by the parameterization τ→0. The type II (F`echet family) and type III
+hyperparameter is a parameter that must be specified before the model (Weibull family) classes of the extreme value distribution correspond to
+can be trained. Firstly, the UF loss function replaces hyperparameters α 1, τ>0 and τ<0, respectively.
+α 2 and β with a common hyperparameter δ such that α 1=δ in Focal loss We propose using the standard GEV distribution (μ=0 and σ =1)
+function (11), and that the Tversky index (15) be formulated as with τ∕=0 to get the c.d.f. of (23) as
+∑ (cid:0) )
+TI* k=∑
+N y ̂p
++δ∑
+N y
+(1(cid:0)N i= ̂p1y i )k̂p +ik
+(1(cid:0)
+δ)∑
+N (1(cid:0) y )̂p
+(18) F GEV(x)=e (cid:0)[1+τˆy](cid:0)1τ (25)
+i=1 ik ik i=1 ik ik i=1 ik ik Fig. 3 demonstrates the impact of the shape parameter τ on the p.d.f
+Secondly, Yeung et al. (2022) reformulated (14) to and c.d.f of the standard GEV distribution.
+∑(cid:0) )
+L FT =
+k∈{0,1}
+1(cid:0) TI* k γ2 (19) a stD ane dn ao rti dn g G Eth Ve dp ir so tb ria bb ui tli is ot nic a p sr e pd GEic Vt ,i o thn es b qa us ae nd t io ln e t fh ue n cli tn iok n d oer f iv the ed sfr tao nm -
+dard GEV distribution is
+so that a common focal hyperparameter can be used in both the
+cross-entropy and Diced-based losses (i.e. γ 1 =γ 2 =γ). In this way, the F(cid:0) GE1 V(p)=((cid:0) lnp GE τV)(cid:0)τ(cid:0) 1 (26)
+UF loss function uses only three hyperparameters; δ to control the
+weight of the two classes, γ the focal parameter, and π to determine the Mapping (26) to ̂y and solving for pGEV gives:
+weight of the component loss functions. (cid:0) )
+This study will also utilize the Tversky index (18), but with a loss p GEV =e
+(cid:0)[1+τˆy](cid:0)1τ
+(27)
+formulation (14) and allow the other hyperparameter to vary for greater
+flexibility. Therefore, our UF loss optimizes five hyperparameters: Φ* = 4.2.2. EEL distribution-based link function
+{α 1,δ,γ 1,γ 2,π}. Hereafter, UF is the hybrid loss with (11), while UF0 Suppose the predictions ̂y in (1) follow an exponentiated-exponential
+and UF1 are the hybrid losses with (12) and (13), respectively. logistic (EEL) distribution with a parameter set {β,λ,μ,σ}, where β,λ>
+0 are shape parameters, μ∈R is a location parameter and σ>0 is a scale
+4.2. Flexible link functions parameter. The probability density function (p.d.f) of ̂y is given by
+( )
+( )
+In binomial regression, the probability p=p(y=1)is mapped to the βλe ˆy(cid:0) σμ ( ( ˆy(cid:0)μ ) (cid:0)λ) β(cid:0)1
+response outcome (cid:0) ∞<h(x) <∞ via a link function F(cid:0)1 as follows: f EEL(̂y)= ( ( ) ) 1(cid:0) 1+e σ (28)
+ˆy(cid:0)μ λ+1
+F(cid:0)1(p)=h(x)
+(20)
+σ 1+e σ
+where F(cid:0)1 is the inverse cumulative density function (c.d.f) of a The p.d.f. in (28) has the following special cases: β=λ=1 which
+random variable X. The link function F(cid:0)1 is also known as the quantile leads to the logistic distribution, λ=1 which gives the Type I logistic
+function. For example, the logit link is derived from the c.d.f of the distribution and β=1 which yields the Type II logistic distribution.
+st (cid:0)andard )logistic distribution, F(p) = 1+1 e(cid:0)p. Using the fact that We propose using the standard EEL distribution (μ=0 and σ =1) to
+F F(cid:0)1(p) =p and solving for F(cid:0)1(p): generate the c.d.f
+Logit:F(cid:0)1(p)=ln(
+p
+)
+(21)
+F
+EEL(x)=(
+1(cid:0)
+(1+eˆy)(cid:0)λ) β
+(29)
+1(cid:0) p
+Fig. 4 demonstrates the impact of the shape parameters β,λ on the p.
+In the context of XGBoost, h(x)=̂y in (1). Therefore (10) comes from d.f and c.d.f of the standard EEL distribution.
+the mapping Denoting the probabilistic predictions based on the link derived from
+( )
+p 1 a standard EEL distribution as pEEL, the quantile function of the standard
+ln 1(cid:0) p =̂yp= 1+e(cid:0)ˆyi (22) EEL distribution is
+( ( ) )
+(cid:0)1
+genT erh ae l is za em d e e xa tp rp er mo ea c vh a li us eu s (Ged E Vin ) t ah nis d s ee xc pti oo nn e t no t id ae ter div ee x l pin ok ns e b na tis ae ld l oo gn i st th ie c F(cid:0) EE1 L(p)=ln 1(cid:0) 1+p1 β ELL λ (30)
+(EEL) distributions.
+Mapping (30) to ̂y and solving for pEEL gives:
+( )
+4.2. S1 u. pG poE sV e d this etr i pb ru et dio in c- tb ioa nse sd ̂y l in ink (f 1un ) c ft oio lln o w a GEV distribution with a p EEL= 1(cid:0) (1+eˆy)(cid:0)λ β (31)
+parameter set {τ,μ,σ}, where τ∈R is a shape parameter, μ∈R is a
+location parameter and σ>0 is a scale parameter.The probability
+density function (p.d.f) of ̂y is given by: 4.3. Derivation of gradient statistics
+1
+f GEV(̂y)= σt(̂y)τ+1e(cid:0)t(ˆy) (23) The derivation of gradient statistics is a non-trivial step in imple-
+menting the extensions proposed in this study. This paper is accompa-
+where nied by a supplementary document providing an algebraic derivation of
+gradient statistics. Furthermore, we have coded the gradient statistics in
+Python and published them on GitHub, complete with implementation
+examples. These gradient statistics can be used for other GBDT
+5
+
+=== PAGE 6 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+Fig. 3. a) the black line represents the type i standard gev distribution (τ→0), which has an unlimited domain and positive skewness. When τ>0 (type II GEV
+distribution), the p.d.f has negative skewness and a lower limit (cid:0) 1 τ exists on the domain. When τ<0 (type III GEV distribution), the p.d.f has positive skewness and
+an upper limit (cid:0) 1 τ exist on the domain. b) When τ<0 the response output of the c.d.f approaches one at a faster rate than it approaches zero and vice versa.
+Fig. 4. a) when β =λ, the p.d.f. of the EEL is symmetrical with β=λ=1 (black solid line) representing the standard logistic distribution. Compared to the standard
+logistic distribution, when β=λ<1 (green dashed line) the tails are heavier and when β=λ>1 (red dashed line) the tails become lighter. The standard EEL has
+positive skewness when β>λ (dark-blue dashed line) and negative skewness when β<λ (light-blue dashed line). b) When the p.d.f. is symmetric, the c.d.f. will also
+be symmetric, and vice versa. (For interpretation of the references to colour in this figure legend, the reader is referred to the web version of this article.)
+implementations, including LightGBM and CatBoost, which support class imbalance in the Freddie Mac (FM) 60 data from our earlier study
+custom loss functions. (Mushava & Murray, 2022). There is also a public version of the dataset
+available on Mendeley Data (Mushava, 2023). The FM60 dataset com-
+5. Simulation study prises 649,608 home loans, all with credit scores under 754. Among
+these, 18,463 defaulted within 60 months after the loan issue date.
+The study proposes a hybrid loss that uses five hyperparameters, There are 78 predictor variables in the dataset, recorded at the time of
+either a standard GEV (one hyperparameter) or EEL (two hyper- loan issuance, and a binary 0/1 target variable, where 1 indicates a
+parameters) distribution-based link while maintaining all baseline default within the 5-year outcome window.
+GBDT implementation hyperparameters. In this section, we conduct a A stratified random sampling method was used to create mid-sized
+simulation study to provide insight into the influence of hyper- datasets of 50 000 loans with different combinations of non-default
+parameters on the predictive power of a model. In Table 1, we present and default cases. If we are simulating a dataset with a 1% default
+seven important XGBoost hyperparameters as well as eight new ones rate, we will randomly select 49500 non-default and 500 default cases
+introduced in the current study. Using sequential model-based optimi- from the FM60 dataset. In this instance, the imbalance ratio (IR) is 99
+zation (SMBO), also known as Bayesian optimization (BO), we will (ratio of non-defaulting to defaulting cases).
+optimize hyperparameters in the search spaces shown in Table 1. Noting that one only needs a single feature in the data to determine
+how difficult it is to classify a given dataset, we calculate the highest
+information value (IV) in the dataset. The convention is that (Siddiqi,
+5.1. Data simulation
+2012):
+A total of 10 artificial datasets are generated by varying the degree of
+6
+
+=== PAGE 7 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+Table 1 • Safe: if at least 4 out of its 5 nearest neighbours belong to the same
+Search space for hyperparameter optimization. class label.
+Hyper-parameter Description Type Search • Borderline: if 2–3 out of its 5 nearest neighbours belong to the same
+space* class label.
+• Rare: if only 1 out of its 5 nearest neighbours belongs to the same
+XGBoost:
+max_depth Maximum depth of a tree. integer [2,6] class label.
+min_child_weight Minimum sum of case weights integer [1,10] • Outlier: if all the 5 nearest neighbours belong to the opposite class.
+(or Hessians) in a tree leaf.
+subsample The fraction of cases randomly decimal [0.5,0.8]
+Fig. 5 summarises the complexity of the data points for the positive
+sampled for growing a tree.
+colsample_bytree Fraction of predictors to decimal [0.5,1] (y =1) and negative (y =0) cases. The pattern in Fig. 5 resembles that
+randomly consider for tree observed across various 14 real-life datasets in the experiment by V.
+building. García et al. (2019). That is, a high IR is associated with the positive class
+eta The learning rate to shrink node decimal [0,1] being outliers/rare data points. Simultaneously, when the IR is high, the
+weights for conservatism.
+negative class consists mostly of safe data points. The percentage of safe
+scale_pos_weight Controls the balance of positive integer [1, IR]
+and negative class weights and borderline data points increases for the positive samples as IR de-
+Gamma Minimum gain threshold for a decimal [0,10] creases, in line with the results of the experiment by V. Garca, Marqu´es,
+split to be made. and Sanchez (2019). For the negative class, however, as the sample
+Extras:
+becomes more balanced, the safe data points decrease and the number of
+Alpha (α 1) Class weights in the cross- decimal [1, IR]
+entropy-based loss. borderline, rare and outlier data points increases. The simulated datasets
+Delta (δ) Class weights in the Dice-based decimal [0,1] are therefore representative of real-life data under different levels of
+loss. class imbalance.
+Gamma1 (γ 1) Focal parameter in the cross- decimal [0,5]
+entropy-based loss.
+Gamma2 (γ 2) Focal parameter in the Dice- decimal (0,5]
+5.3. Hyperparameter optimisation
+based loss.
+Pi (π) Weight of cross-entropy and decimal [0,1]
+Dice-based losses in the hybrid. For each sample in Table 2, a random sample of 30 000 cases will be
+Tau (τ) Tail parameter in the GEV decimal [-1,0) used for model training, 10 000 for model validation (i.e. determining
+distribution-based link
+optimal hyperparameters), and the remaining 10 000 for model testing
+Beta (β) Shape parameter in the EEL decimal (0,5]
+(i.e. evaluating the final model). The H measure is used to evaluate
+distribution-based link
+Lambda (λ) Shape parameter in the EEL decimal (0,5] model performance (Hand & Anagnostopoulos, 2014; Hand, 2009). It is
+distribution-based link a coherent alternative to the widely used AUC for evaluating the
+Loss symmetry The symmetry of the hybrid loss categorical {UF, UF1, discriminatory power of models.
+function UF0}
+We will utilize sequential model-based optimization (SMBO), also
+*A uniform distribution is used to generate random values within the search known as Bayesian optimization (BO) to determine the optimal combi-
+space of continuous hyperparameters. nation of hyperparameters. This technique is superior to other methods
+such as grid search, especially when an array of hyperparameters is
+• IV less than 0.02: no predictive variable present (Bergstra, Komer, Eliasmith, Yamins, & Cox, 2015; Snoek, Lar-
+• IV between 0.02 and 0.1: weak variable ochelle, & Adams, 2012; Xia, Liu, Li, & Liu, 2017). The hyperopt module
+• IV between 0.1 and 0.3: average variable in Python will be used to implement BO using the Tree-of-Parzen-
+• IV between 0.3 and 0.5: strong variable Estimators (TPE) approach, as recommended by Bergstra et al. (2015).
+• IV greater than 0.5: over-predictive. For a given candidate hyperparameter set, model training stops when
+the H values do not improve on the validation sample in the next 10
+Table 2 presents a summary of ten datasets that were simulated. iterations. Once the optimal number of iterations has been determined,
+the hyperparameter configuration is used to score the test sample and
+the H measure is recorded. The BO algorithm will use the performance
+5.2. Data complexity recorded in previous iterations to determine the next combinations of
+hyperparameters to consider in the next iteration.
+To further understand each sample’s intrinsic characteristics, we Using’s heuristics by Owen (2021), we set the BO algorithm to take
+apply the approach of García, Marqu´es, and Sa´nchez (2019). Specif- 10 loops in the search space for each continuous hyperparameter and 15
+ically, using the k-nearest neighbour algorithm (with k = 5), each case loops for each categorical hyperparameter, for faster computation.
+in the sample is assigned to the following groupings: Suppose the BO algorithm is run to search either UF, UF0, or UF1 losses,
+Table 2
+A summary of the simulated samples with varying IRs. There are only a few variables that have average to strong predictive power.
+Dataset #Cases #Covariates #Predictive variables1 IV2 Default Rate IR
+Sample 1 50,000 78 10 23.32% 0.0625% 1599
+Sample 2 50,000 78 13 30.10% 0.125% 799
+Sample 3 50,000 78 11 24.89% 0.25% 399
+Sample 4 50,000 78 11 23.00% 0.5% 199
+Sample 5 50,000 78 9 38.41% 1% 99
+Sample 6 50,000 78 11 35.89% 2.5% 39
+Sample 7 50,000 78 11 33.18% 5% 19
+Sample 8 50,000 78 10 35.06% 10% 9
+Sample 9 50,000 78 10 35.14% 20% 4
+Sample 10 50,000 78 10 36.94% 30.% 2
+1 IV>=0.02.
+2Highest information value.
+7
+
+=== PAGE 8 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+Fig. 5. Percentage of each data point type (left y-axis) and the class imbalance ratio (right y-axis) for each of the simulated samples. a) There is an association
+between a high-class imbalance level and default cases being outliers. When samples become more balanced, outlier default cases decrease, while rare, borderline,
+and safe cases increase. b) Most non-default cases are safe, but borderlines appear as the sample becomes more balanced.
+each with 12 hyperparameters (7 unique to XGBoost, 5 from the hybrid The IR and learning rate are the most influential factors in the
+loss), and using an EEL link (2 hyperparameters). In this case, the total discriminatory power of the custom XGBoost. An examination of one of
+number of iterations for the loss symmetry and the continuous hyper- the component regression trees shown in Fig. 6(a) indicates an IR of 98 is
+parameters will be (3×15)+(14×10) =185. the most important factor in separating the data. These results are
+Using different combinations of training, validation, and test samples consistent with earlier studies that have highlighted the challenges of
+in Table 2, the process is repeated five times. dealing with classification tasks where a minority class represents less
+than 1% of the samples, as reported by Yang and Wu (2006). Accord-
+ingly, when the IR is 99 or more (e.g., Samples 5–10 in Table 2), we will
+5.4. Results refer to it as a severe class imbalance, otherwise as a non-severe class
+imbalance. A supplementary document is provided that analyzes how
+This simulation study aims to gain insight into the influence of the final hyperparameters, grouped by IR severity, were selected.
+hyperparameters on the predictive power of the customized XGBoost
+model. Therefore, for each loop of the BO algorithm, the following in- 6. Application
+formation was recorded: the dataset’s IR, five hyperparameters from the
+hybrid loss, seven hyperparameters from vanilla XGBoost, a binary in- In addition to applying the hybrid losses UF, UF0, and UF1, we
+dicator for the type of link function (GEV =1), three binary indicators explore the four special cases of the loss in (11): cross-entropy (CE), CE
+for the skewness of the link (negative, positive, or symmetric), three incorporating class weights (wCE), CE with a focal parameter (fCE), and
+binary indicators for the symmetry of the cross-entropy-based loss (UF, CE combined with both class-weights and focal parameter (mfCE). The 7
+UF0, and UF1), and the H measure on the test sample. different losses are coupled with 4 links derived from the following
+The H measure is then set as the target variable, with the remaining standard distributions: logistic (i.e., Logit), positively skewed GEV,
+variables serving as independent variables. Random forests are then symmetric EEL, and positively skewed EEL. As the Logit is an instance of
+applied to identify important variables (Breiman, 2001). Random forests the symmetric EEL, we exclude pairing the hybrid loss with it. Addi-
+are constructed using 1000 regression trees as base learners, and a tionally, we omit negatively skewed distributions since they are inap-
+variable’s importance is determined by the average decrease in mean propriate for our classification task. Furthermore, we examine Xia et al.
+square error (MSE) when an independent variable is used to split a node. (2017)’s cost-sensitive link paired with a CE loss, and extend it to be
+Fig. 6(a) presents a regression tree within the random forest, and Fig. 6 compatible with the mfCE loss. In total, we explore a comprehensive set
+(b) summarizes the importance of the variables.
+8
+
+=== PAGE 9 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+Fig. 6. a) the standalone pruned regression tree provides an interpretable picture of how ir and the custom xgboost hyperparameters influence the discriminatory
+power. the length of a branch is proportional to how much influence the split has on creating homogeneous groups; therefore, an ir of 98 is the most important factor
+in separating the data. b) demonstrates that among the hyperparameters in Table 1, the following influence the discriminatory power the most: eta, Alpha,scale_-
+pos_weight, Pi, Gamma1, max_depth, and the loss symmetry.
+of 27 distinct XGBoost model configurations, each built upon these
+Table 3
+various loss-link function combinations.
+Freddie Mac primary datasets. All datasets have 78 covariates.
+Data Model development OOS Testing OOT Testing
+6.1. Datasets
+#Cases IR #Cases IR #Cases IR
+We apply the models on datasets from our earlier study (Mushava & FM12 231 065 390 232 515 389 233 791 397
+Murray, 2022): FM12, FM36, and FM60 datasets, which predict defaults FM36 159 199 163 158 784 165 606 616 113
+in the next 12, 36 and 60 months, respectively. The datasets are also FM60 214 064 34 230 719 34 564 408 89
+available on Mendeley Data (Mushava, 2023). As reported by Mushava
+and Murray (2022), at least 90% of the positive cases in the FM datasets (Haixiang et al., 2017). Python modules, particularly “imblearn”,
+are rare to outliers, whereas almost all of the negative cases are safe. “sklearn” and “keras” were used to implement these benchmarks and
+Accordingly, default events can be viewed as rare events compared to our code for the ensembles. A brief overview of some prominent credit
+non-default events. scoring techniques, grouped by how they handle class-imbalanced data
+The pre-processing of the data included the identification of pre- follows (Dastile, Celik, & Potsane, 2020; Markov, Seleznyova, & Laps-
+dictive and stable covariates, their standardization, missing values hin, 2022):
+imputation, and one-hot encoding. XGBoost is non-parametric, so
+dimension reduction techniques such as removing redundant or corre- 1. Data level techniques:
+lated features were not performed. The credit score variable in FM a) re-balancing the data using the popular SMOTE before fitting the
+datasets is uniquely capable of predicting defaults in a given outcome RF classifier,
+window, as evidenced by its IV>>0.5 (Sousa, Gama, & Brand˜ao, 2016). b) further cleaning the data preprocessed using SMOTE with ENN
+Therefore, the FM datasets used in this study correspond to loans with before fitting the RF classifier.
+credit scores below a particular cut-off score to avoid having a one- 2. Algorithm level techniques:
+dimensional model. Details of the model development, out-of-sample a) Cost-sensitive deep neural networks (CSDNN). Our model follows
+(OOS) and out-of-time (OOT) primary datasets used in the application the deep learning set up by Kim et al. (2019). Instead, we use BO
+are summarized in Table 3. and the model development sample to determine the optimal
+class weight, learning rate, batch size, number of hidden layers
+6.2. Benchmark classifiers (up to 5), neurons, activation function, and dropout rate. Notably,
+we found during BO that a single hidden layer suffices to model
+A comparison will also be made to other established classification our datasets.
+techniques for handling class-imbalanced data in a two-class setting
+9
+
+=== PAGE 10 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+b) Cost-sensitive support vector machine (CSSVM). Cao, Zhao, and each catering to various decision-making scenarios. Thus, our model
+Zaiane (2013) describe the rationale of CSSVM for imbalanced evaluation will include assessing the accuracy and financial impact of
+data learning. IR is used as a class-weight for the minority class, models with high discriminatory power when they are used for decision-
+and 1 for the majority class. We experimented with both linear making based on a predetermined threshold score. Lastly, we will assess
+and radial basis function (RBF) kernels. BO using the model our proposed XGBoost extensions for transparency. This is an essential
+development sample led us to favour the linear kernel due to its requirement for stakeholders with less technical backgrounds, and a
+computational efficiency and comparable performance to the RBF crucial regulatory requirement, particularly when scoring prospective
+kernel on our datasets. borrowers.
+3. Hybrid techniques:
+a) Balanced RF (BRF) with 1000 trees (O’Brien & Ishwaran, 2019).
+The fraction of predictors to be used in the tree base learners is 6.4. Results and discussion
+tuned.
+b) EasyEnsemble with AdaBoost as a base learner (Liu et al., 2008). A detailed discussion of the results is provided in the following
+The number of samples to draw and the number of boosting it- subsections.
+erations are tuned.
+4. Heterogenous ensembles: 6.4.1. Discriminatory power
+a) Stacking (Wolpert, 1992). From the techniques mentioned above
+for addressing class-imbalanced data in the model, we have 6.4.1.1. Xgboost extensions. Fig. 7 displays boxplots representing the
+chosen the following methods to construct a set of diverse base top 10 out of 27 XGBoost variants, ranked according to their median H
+learners: 1b), 2a), and 3b). Additionally, we select one of the measure values. The values were derived from 30 model training and
+XGBoost variants as a fourth base learner. We chose an XGBoost testing runs. To order model performance, the median was chosen
+variant whose PDs have the highest IV during model training. The because it is unaffected by outliers or skewed distributions. An outlier in
+BRF classifier is set as the meta-learner. performance is denoted by a filled dot, while the average performance is
+b) Bstacking is a variation of stacking proposed by Xia, Liu, Da, and represented by a filled square. The horizontal dashed red lines within the
+Xie (2018). The idea is to create independent samples for training boxplots represent the median of the standard XGBoost model. Addi-
+the base learners and meta-classifiers, repeating this process T tionally, to distinguish the positively skewed EEL link from its sym-
+times. Our stacking approach in 4a) is the special case, T = 1. We metric counterpart, a “+” suffix is used.
+use the same set-up 4a) with T=40 for Bstacking. Each boxplot includes information about the class imbalance ratio
+(IR) in the OOS and OOT test samples during the 30 runs, as well as the
+6.3. Model evaluation p-value generated by Kruskal-Walli’s test. The assumptions of Kruskal-
+Walli’s test, specifically the homogeneity of variance assumption, were
+Due to the large size of our datasets, the following process is repeated violated when Levene’s test was applied. As a result, a significant p-
+30 times: we start by randomly selecting 100 000 cases from the model value indicates that at least one model performs stochastically differ-
+development dataset, and simultaneously, 50 000 cases from both the ently from the others, but does not necessarily indicate that the average
+out-of-sample (OOS) and out-of-time (OOT) testing datasets. Next, we performance differs (Kruskal & Wallis, 1952). The Mann-Whitney U test,
+divide the model development sample into two halves using random also known as the Wilcoxon rank-sum test, is used when we are
+allocation (cid:0) 50% is dedicated to training, while the remaining 50% is attempting to determine whether the performance of two models is
+assigned for validation purposes. After identifying the most suitable stochastically different.
+hyperparameters, we proceed to fit the models using 50 000 cases from In the highly imbalanced FM12 OOS test dataset, among the variety
+the training subset. In the case of both the CSDNN and XGBoost variants, of different loss functions and link pairs explored, the combination of the
+the validation subset is utilized for implementing early stopping. Spe- UF loss and the EEL + link yielded the highest median H measure
+cifically, if the H measure fails to exhibit improvement over the course of (0.1639), closely followed by the CE loss coupled with the Logit link
+10 iterations using the validation set of 50 000 instances, the training (0.1635), as well as the UF1 loss coupled with the EEL link (0.1625).
+process is halted. The final assessment of model performance is con- When extended to OOT test datasets, it becomes evident that the CE loss
+ducted using an independent set of 50,000 cases from both the out-of- together with the Logit link demonstrates the strongest discriminatory
+sample (OOS) and out-of-time (OOT) datasets. power, registering a median H value of 0.1266. It was followed by the UF
+This iterative model evaluation approach, incorporating diverse loss with the EEL +link (0.1237) and the UF1 loss with the EEL link
+training, validation, OOS, and OOT samples, is specifically designed to (0.1227). According to the Kruskal-Wallis test p-value, there are no
+mitigate potential biases that might arise from a single hold-out vali- statistically significant differences between the top 10 specialized loss
+dation strategy (García, Marqu´es, & Sa´nchez, 2015). Thus, we can draw and link function pairs for the FM12 OOS test sample. In OOT testing the
+meaningful conclusions regarding the central tendency of the model FM12 datasets, Kruskal-Wallis’ test p-value indicates performance dif-
+performance, ensuring statistically sound and reliable evaluations. In ferences. According to the Wilcoxon rank-sum test, with a p-value of
+the OOT sample, loans are issued in a future period compared to the 0.6414, there is no statistically significant difference between the vanilla
+model training sample, so it helps gauge the model’s robustness to the XGBoost and the enhancement utilizing UF loss and the EEL +link.
+time change. In the FM36 datasets with less severe class imbalances, Kruskal-
+We will also evaluate the discriminatory power of the models using Wallis’ test indicates statistically significant differences in performance
+the Gini index, which is a standard measure in the credit industry among the top 10 XGBoost extensions across both the OOS and OOT
+(Siddiqi, 2012). In binary classification tasks, discriminatory power re- datasets. Particularly noteworthy is the superiority of the UF-EEL +and
+fers to a model’s ability to rank-order positive and negative cases using a UF1-EEL loss-link pairs, with OOS median H values of 16.86% and
+numeric score, typically a probability prediction. The advantage of using 16.76%, respectively, in contrast to vanilla XGBoost’s median perfor-
+the H measure and Gini index is that they are independent of a subject- mance of 16.65%. This trend is similarly pronounced in OOT testing,
+based cut-off score for classifying a case. In both the Gini index and the H where the UF-EEL +and UF1-EEL loss-link pairs secure median H values
+measure, the values range from 0 to 1.0, with higher values indicating of 12% and 11.97%, outperforming vanilla XGBoost’s fifth-ranked me-
+greater discriminatory power. dian H of 11.67%. Observing the FM36 OOT boxplots, it is evident that
+In practical applications, credit-scoring models play a pivotal role by the UF-EEL + loss-link function pair achieved a substantially higher
+generating scores that are subsequently divided into distinct ranges, maximum H value (15.8%) compared to the vanilla XGBoost solution
+10
+
+=== PAGE 11 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+Fig. 7. Comparing the discriminatory power of the XGBoost extensions using the H measure.
+(14.5%). Wilcoxon rank-sum test, p-value = 0.2618, detected no sta- hyperparameter. Our analysis of hyperparameter optimization out-
+tistically significant difference between vanilla XGBoost and the tailored comes, as detailed in the supplementary material, aligns with the find-
+XGBoost using UF loss and EEL +link. ings of (Calabrese et al., 2016). In their exploration of the incorporation
+Under conditions of extreme class imbalance within the FM12 of a GEV link within a generalized additive model (GAM) and in the
+datasets, the use of the UF-EEL +and UF1-EEL loss-link pairs did not context of non-severely class-imbalanced data, Calabrese et al. (2016)
+provide any noticeable advantage in terms of discriminatory power determined that τ=(cid:0) 0.25 yielded optimal empirical results. Conse-
+when considering median performance. However, their performance quently, the need for extensive hyperparameter optimization specif-
+within the context of FM36 datasets has revealed promising outcomes ically for the GEV link appears to be unwarranted.
+for datasets characterized by a high imbalance ratio (IR). An intriguing Interestingly, the cost-sensitive XGBoost (CSXGBoost) framework
+finding emerges when scrutinizing the highest H values achieved on the proposed by Xia et al. (2017) did not appear among the top 10 XGBoost
+FM12 OOS test samples. In this case, the mfCE-EEEL + pair ranked variants. In our new extension, we used the CE loss with a focal
+fourth in terms of median performance, achieving an exceptional H- parameter in CSXGBoost, represented by the fCE-CS loss-link pair, to
+value of 24.3%, notably surpassing XGBoost’s highest H-value of 21.5%. achieve the 7th rank in OOT testing on the FM36 dataset. The propo-
+Despite XGBoost’s median dominance on the FM12 OOS test samples, it sition of Wang et al. (2020) that incorporates weighted CE (wCE) or
+shares equivalent high H-values with the UF-EEL +and UF1-EEL loss- standard focal loss (fCE) intermittently appears within the top 10
+link pairs. Fig. 7 reinforces this trend, illustrating that the custom ex- rankings but is not ranked highly. Also, the extension developed by
+tensions consistently achieve higher or competitive H-values in com- Trisanto et al. (2021), which utilizes the modified focal loss (mfCE)
+parison to XGBoost. We posit that with meticulous refinement, the alongside the Logit link in XGBoost, only obtained the 9th position on
+advanced loss functions introduced in this study hold the potential to the FM36 dataset during OOT testing. The combination of mfCE loss and
+outperform XGBoost’s CE loss, which lacks tunability. This assertion is the GEV link, which was introduced earlier (Mushava & Murray, 2022),
+grounded in the fact that no further hyperparameter tuning was pursued performed well in the special loss function case of adopting CE or wCE
+beyond the initial Bayesian optimization stage, which employed coarse loss. A possible explanation for the difference between this study and the
+search ranges as detailed in Table 1. aforementioned related works is the reliance on single hold-out valida-
+In scenarios where the class imbalance is less severe (IR<99), such tion. Holdout estimators are often biased since only a portion of the data
+as in the FM60 dataset, the Kruskal-Wallis test did not detect perfor- is used for training and validation (García et al., 2015). We recommend
+mance differences for the top 10 models, both in OOS and OOT contexts. repeating model training and validation procedures multiple times, or
+Nevertheless, we observed that simpler loss functions, like the classic adopting cross-validation techniques in the case of smaller datasets, in
+CE, were sufficient. Specifically, coupling CE with the positively skewed order to mitigate the bias.
+GEV link consistently demonstrated favourable performance in both In conclusion, our empirical findings present a noteworthy obser-
+OOS and OOT scenarios. On OOT testing, the average performance of vation. When considering the incorporation of asymmetric loss functions
+the CE-GEV loss-link pair at 17.49%, noticeably surpassed that of vanilla to address the class imbalance, it becomes apparent that assigning the
+XGBoost at 17.02%. Based on the observed outcomes, we find that focal parameter exclusively to the rare class could potentially yield su-
+customizing XGBoost with a GEV link offers a parsimonious alternative perior outcomes compared to the alternative approach proposed by Li
+to the commonly used Logit link, as it introduces just a single additional et al. (2019) of applying the focal parameter solely to the majority class.
+11
+
+=== PAGE 12 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+This distinction becomes particularly pronounced when contrasting the heterogeneous ensembles. This superiority is affirmed across both the H
+performance of the UF1 loss formulation, introduced in our study, with measure and the Gini index, spanning both out-of-sample (OOS) and
+the asymmetric UF0 loss proposed by Yeung et al. (2022) within the out-of-time (OOT) datasets. Nonetheless, XGBoost_CE_GEV required on
+realm of computer vision applications. The next section compares the average 50% more training time than the conventional XGBoost model.
+discriminatory power of the top-performing XGBoost extensions to the When dealing with severe class imbalances, as observed in the FM12
+benchmark classifiers discussed in Section 6.2. and FM36 datasets, the hybrid EasyEnsemble classifier demonstrates
+superior performance to other classifiers. EasyEnsemble selects all in-
+6.4.1.2. Comparison to benchmark classifiers. We compare XGBoost’s stances from the minority class and combines them with the same
+discriminatory power and its top-performing customizations with the number of cases randomly selected from the majority class. The process
+benchmarks discussed in Section 6.2. XGBoost enhancements that is repeated multiple times to generate a range of balanced training
+employ UF-EEL + and UF1-EEL loss-link pairs will henceforth be samples. Based on these balanced sample subsets, a base learner, in this
+referred to as XGBoost_UF_EEL + and XGBoost_UF1_EEL. These two case, AdaBoost, is trained, and its predictions are aggregated. In com-
+customizations were selected for their robust performance on datasets in plex classification tasks with severe class imbalances, algorithmic ap-
+which there is a severe class imbalance (IR≥99). On the other hand, for proaches are frequently incorporated into multi-classifier systems, such
+datasets with non-severe class imbalance (IR<99), we select the variant as EasyEnsemble. XGBoost and its extensions implement more complex
+of XGBoost incorporating the GEV link into the CE loss, referred to as boosting algorithms than AdaBoost and demonstrate quicker training
+XGBoost_CE_GEV. The Gini index is also shown, which is the credit times. Consequently, the techniques proposed in this study can replace
+industry’s standard for measuring a model’s discriminatory power. We AdaBoost in the EasyEnsemble framework to improve the XGBoost
+use the median as a measure of central tendency to mitigate the influ- variant’s predictive capacity in severe class imbalances, where
+ence of outliers or skewed performance. In addition, the median model algorithm-level adjustments were less effective than hybrid classifiers.
+training time across all datasets is presented. Classifiers demonstrating The performance of the model was the worst when data pre-
+the best performance are highlighted in bold text, while those demon- processing techniques were applied. In addition, heterogeneous
+strating the best performance in their respective categories, including ensemble classifiers such as Bstacking require significant computational
+algorithm-level, data-level, hybrid, and ensemble classifiers, are resources. Also of note is that the Gini index and H measure consistently
+underlined. rank models according to their discriminatory power. An empirical
+Table 4 illustrates that the novel extensions introduced in this study, study by Lessmann, Baesens, Seow, and Thomas (2015) found a 93%
+which could be further refined to enhance their discriminatory power, correlation between the area under the receiver operating characteristic
+show a notable advantage over the baseline XGBoost algorithm on curve (AUC) and the H measure. The AUC is proportional to the Gini
+average. In cases of non-severe class imbalance, the XGBoost_CE_GEV index: AUC =1/2(Gini +1). The next section examines the relationship
+variant performs significantly better than established benchmark clas- between discriminatory power, and classification accuracy, which is
+sifiers, such as neural networks and SVMs, and sophisticated related to profitability.
+Table 4
+Benchmarking XGBoost and its top-performing extensions to selected data-level, hybrid methods, and ensemble methods for handling class imbalanced data. Values
+shown are median (in per cent) performance across 30 validation runs.
+Metric Classifier FM12 FM36 FM60 Runtime
+OOS OOT OOS OOT OOS OOT (sec)
+Algorithm-level:
+H XGBoost 16.35 12.66 16.65 11.67 21.46 17.46 4.40
+XGBoost_CE_GEV 0.00 0.00 9.54 7.68 21.62 17.51 6.99
+XGBoost_UF_EEL+ 16.39 12.37 16.86 12.00 21.37 16.78 10.10
+XGBoost_UF1_EEL 16.25 12.27 16.76 11.97 21.25 16.79 11.25
+CSDNN 13.40 5.04 14.60 11.30 20.70 17.10 39.10
+CSSVM 13.40 5.04 14.60 11.30 20.90 17.30 37.80
+Data-level:
+SMOTE_RF 6.50 3.56 6.89 5.94 11.62 7.98 105
+SMOTE_ENN_RF 6.04 4.30 6.80 2.75 12.70 4.24 117
+Hybrid:
+BRF 19.57 11.63 18.18 11.95 19.74 10.85 15.5
+EasyEnsemble 21.8 13.94 20.05 14.50 18.88 10.39 4.6
+Heterogeneous ensembles:
+Stacking 10.88 8.31 14.14 9.89 14.92 7.78 444
+Bstacking* 19.99 9.78 17.66 12.13 18.09 13.02 18 998
+Algorithm-level:
+Gini XGBoost 45.87 40.09 46.57 40.37 54.20 48.00 4.40
+XGBoost_CE_GEV 45.81 39.85 47.04 40.46 54.25 47.35 6.99
+XGBoost_UF_EEL+ 0.00 0.00 27.65 25.63 54.44 48.04 10.10
+XGBoost_UF1_EEL 45.49 39.59 46.98 40.67 54.05 47.60 11.25
+CSDNN 36.80 18.20 42.50 39.10 52.40 47.40 39.10
+CSSVM 36.80 18.20 42.50 39.10 53.10 47.70 37.80
+Data-level:
+SMOTE_RF 22.1 17.0 28.0 27.1 39.7 33.2 105
+SMOTE_ENN_RF 23.1 21.1 30.1 16.8 43.0 23.1 117
+Hybrid:
+BRF 49.7 37.5 50.0 41.7 52.2 40.0 15.5
+EasyEnsemble 50.7 40.7 51.4 44.6 51.3 35.2 4.6
+Heterogeneous ensembles:
+Stacking 35.3 31.8 41.8 38.1 45.5 33.6 444
+Bstacking 47.2 34.3 48.7 41.9 50.3 42.6 18 998
+*Model training and testing repeated only 5 times due to intensive computational time.
+12
+
+=== PAGE 13 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+6.4.2. Classification accuracy and profitability 2017). The results indicate that there is no single model that is suitable
+To gauge the potential business value of employing scorecards with for all performance metrics and performs optimally across them.
+higher discriminatory power, we examine classification accuracy and Across all datasets, XGBoost and its variants exhibit the highest MCC
+related misclassification costs. For each FM dataset, we select XGBoost and F1 values. The FPRs, however, are lower due to poor predictions for
+and its most effective variant, as well as the most effective algorithm- the negative cases compared to the benchmarks. In contrast, XGBoost
+based, data-based, and hybrid benchmarks. We pursue the same model and its variants have relatively low FNRs due to their higher classifica-
+evaluation strategy outlined in Section 6.3, but we use the 50 000 cases tion accuracy on positive cases. Low FNRs have significant implications
+from the OOS test data to determine a cut-off score c that maintains the for financial applications such as credit scoring since misclassifying
+training sample default rate. A case in the OOT test data, which more positive cases is a serious error. As an example, denying credit to a
+closely resembles real-life data, is classified as positive (y = 1) if the potentially good client, although regrettable, is more manageable given
+model-predicted probability is greater than c, otherwise classified as the larger number of potential borrowers. In contrast, extending credit
+negative (y =0). to a high-risk customer results in considerable financial losses. Bench-
+From the confusion matrix, we calculate the following metrics: false mark classifiers are therefore susceptible to low FPR errors but incur
+positive rate (FPR), false negative rate (FNR), Matthew’s correlation substantial misclassification costs due to high FNR errors.
+coefficient (MCC), and F1 score. The FPR is the percentage of positive To determine whether the FNRs of the top two classifiers are statis-
+cases misclassified as negative by the model. In contrast, the FNR is the tically significant, we conducted a Wilcoxon rank-sum test. There were
+fraction of positive cases that are incorrectly classified as negative by the no statistically significant differences in the FNRs of XGBoost and
+model. The F1 score, which is equivalent to the Dice score in equation XGBoost_UF_EEL +in cases where the IR exceeded 99, namely FM12 (p-
+(16), ranges from 0 to 1, with 1 indicating the accurate classification of value =0.4765) and FM36 (p-value =0.2559). A significant statistical
+all positive cases. F1 scores, however, ignore the correct classification of difference was observed between the FNRs of XGBoost and XGBoost_-
+negative cases. The MCC, whose values range from (cid:0) 1 to 1, provides an CE_GEV in the FM60 datasets, with a p-value of 0.0166. Furthermore,
+unbiased measure of classification accuracy of both classes when the XGBoost_CE_GEV has a superior discriminatory power when the IR is
+datasets have a significant class imbalance (Chicco & Jurman, 2020). An lower than 99, implying that its implementation is likely to result in a
+MCC of zero represents the expected value of a coin toss, whereas (cid:0) 1 tangible financial benefit.
+and 1 indicate perfect misclassification and classification, respectively.
+To assess whether more accurate models are profitable, we examine 6.4.3. Model transparency
+misclassification costs, as done by Lessmann et al. (2015). Credit scoring The use of machine-learning models has gained increasing interest
+is characterized by the low opportunity cost of incorrectly classifying among banks in recent years (Dastile et al., 2020). However, advanced
+negative cases as positives, that is, the FPR error, as opposed to the cost machine learning techniques present a significant challenge because of
+or loss of incorrectly classifying a positive case as negative. In the first their inherent “black box” nature, which makes it difficult to understand
+12 months, which is the target of the FM12 dataset, we assume the ratio how predictions are generated. For banks, credit providers, and other
+will be 1:5, and on a longer scale, such as FM36 and FM60, we assume institutions that prioritize accurate predictions, while seeking insight
+the ratio will be 1:10. The results of the analysis are presented in Table 5. into their inner workings, this concern is particularly pressing (Haixiang
+Table 5 shows the MCC does not apply to the benchmark classifiers in et al., 2017). Moreover, many countries impose regulatory stipulations
+the FM12 datasets. This is because the models classify all positive cases demanding interpretability in credit scoring models, particularly for
+as negative. Consequently, a zero F1 score is reported. Despite Easy- assessing new credit applications.
+Ensemble’s robust discriminatory power, it could not detect positive GBDT techniques such as XGBoost rely on intuitive decision trees as
+cases in OOT samples. Poor calibration may be responsible for this base models, which can readily be extracted and interpreted. Based on
+problem, namely, predictions are not accurately aligned with observed our hyperparameter optimization, we determined that shallow decision
+outcomes. There is no correlation between calibration and discrimina- tree base learners are optimal, which makes it easier to interpret the
+tory power, and further post-processing is often required to align pre- trees. Fig. 8 illustrates a representative base tree learner from
+dictions with actual outcomes (Bequ´e, Coussement, Gayler, & Lessmann, XGBoost_CE_GEV, demonstrating its interpretability. Based on this base
+tree, a client with a credit score below 678.5 and more than one obli-
+gating borrower for the mortgage (indicated by Single_borrower = 0)
+Table 5
+Median performance of selected models in terms of classification accuracy across receives a score of (cid:0) 0.0058. To determine the probability of default, the
+30 runs. Except for the misclassification costs, the values shown are percentages. component decision tree base model scores are summed up and fed into
+Dataset/ Classifier Performance metric
+MCC F1 FPR FNR Cost*
+FM12
+XGBoost 0.90 1.10 0.97 97.83 4.9012
+XGBoost_UF_EEL+ 0.74 0.97 0.44 98.49 4.9288
+CSDNN n/a 0.00 0.20 100.00 5.0020
+EasyEnsemble n/a 0.00 0.07 100.00 5.0007
+SMOTE_ENN_RF n/a 0.00 0.11 100.00 5.0011
+FM36
+XGBoost 10.1 5.12 1.97 90.94 9.1150
+XGBoost_UF_EEL+ 8.48 5.20 2.22 90.77 9.0984
+CSDNN 1.13 1.10 0.17 99.33 9.9347
+EasyEnsemble 2.77 2.94 0.30 99.98 9.9984
+SMOTE_ENN_RF (cid:0) 0.05 0.04 0.03 99.98 9.9984
+FM60
+XGBoost 6.62 5.99 7.67 75.85 7.6620
+XGBoost_CE_GEV 6.04 5.27 10.73 70.95 7.2023
+CSSVM 2.52 3.66 2.00 94.57 9.4768
+BRF 2.52 3.66 2.00 94.57 9.4768
+Fig. 8. An extract of the first decision tree-based learner based on the
+SMOTE_RF 1.10 2.22 1.23 97.61 9.7737
+XGBOOST_CE_GEV variant from the FM60 dataset. The cover is the sum of
+*Assuming it costs 5 times to misclassify positive cases in the first year, and 10 Hessian, representing how many cases fall into that node. Gain is the infor-
+times afterwards. mation gain (8) for the split, representing the importance of the variable.
+13
+
+=== PAGE 14 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+the link function. can be symmetric or asymmetric. For the link functions in the losses,
+As the number of decision trees in baseline models increases, there are two options: either one drawn from the generalized extreme
+analyzing each component tree becomes increasingly challenging. To value (GEV) distribution or an exponential logistic (EEL) distribution.
+address this issue, the baseline implementation of XGBoost incorporates We examined 27 competing XGBoost variants and applied them to a
+contemporary techniques such as SHAP (Shapley Additive Explana- publicly available Freddie Mac mortgage loan database.
+tions). The SHAP method can be used to assess the contributions of each The novel extensions introduced in this study demonstrate a notable
+feature to predictions (Lundberg & Lee, 2017). Fig. 9 shows the SHAP advantage over the baseline XGBoost algorithm. When the class-
+values of the six most influential predictors in the XGBoost_CE_GEV imbalance ratio (IR) is not severe, usually less than 99, cross-entropy
+variant when applied to FM60 training data. Positive SHAP values loss paired with a link derived from a standard GEV distribution per-
+indicate a higher likelihood of default, while negative values indicate formed significantly better than established benchmark classifiers, such
+the opposite. A credit score, for example, has a nonlinear relationship as neural networks, support vector machines, and sophisticated het-
+with default, where in general, the higher a credit score, the lower the erogeneous classifiers. In the case of severe class imbalances, typically
+default rate. Blue markings indicate that other factors are influencing IRs between 99 and 200, the more advanced loss function that combines
+the predictions at that point. Based on the dummy 0/1 variable for a the symmetric loss function with a link derived from a positively skewed
+single borrower, it is evident that a higher default rate is associated with standard EEL distribution performs materially better than the vanilla
+loans with only one borrower liable to repay the mortgage, as opposed to XGBoost. Across both out-of-sample and out-of-time datasets, the pro-
+loans with more guarantors. Other variables in Fig. 9 also exhibit logical posed extensions demonstrated superiority both for the H measure and
+trends and can be interpreted similarly. Our prior study provides a the Gini index. In extreme class imbalance ratios, usually greater than
+comprehensive description of the predictor variables (Mushava & 300, we did not find a clear advantage to using a more advanced loss
+Murray, 2022). function. Because of the hybrid loss function’s flexibility, we expect it to
+perform better at extreme levels of class imbalance with fine-tuning.
+7. Conclusions, limitations and future research Finally, we have found that the proposed extensions decrease the
+misclassification costs associated with incorrectly classifying positive
+7.1. Conclusions cases as negative when the class imbalance is not severe, which has a
+financial benefit for credit scoring. Furthermore, GBDTs such as
+This paper presents a novel flexible loss function for binary classifi- XGBoost are relatively transparent in comparison to other machine
+cation based on the popular XGBoost implementation of gradient- learning techniques, which is desirable for financial applications. Our
+boosted decision trees (GBDT). This loss function can specify Dice- working code and model output are publicly available on our Github
+based and cross-entropy-based loss functions, and their hybrids, and repository to facilitate reproducibility and extensibility.
+Fig. 9. The contribution of the top 6 predictors towards the target prediction in the XGBOOST_CE_GEV variant in the FM60 training dataset.
+14
+
+=== PAGE 15 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+7.2. Limitations References
+Our study has limitations, primarily due to data resampling and Abraham, N., & Khan, N. M. (2019). A novel focal tversky loss function with improved
+attention u-net for lesion segmentation. Paper presented at the 2019 IEEE 16th
+hyperparameter optimization. To expedite computational processes and
+international symposium on biomedical imaging (ISBI 2019).
+mitigate random effects, we selected 50,000 cases each for model Alzaatreh, A., Lee, C., & Famoye, F. (2013). A new method for generating families of
+development, validation, out-of-sample testing, and out-of-time testing, continuous distributions. Metron, 71(1), 63–79.
+Batista, G. E., Bazzan, A. L., & Monard, M. C. (2003). Balancing training data for automated
+and repeated the process 30 times. In the case of hyperparameter opti-
+annotation of keywords: a case study. Paper presented at the WOB.
+misation, we repeated the process five times over course search ranges. Bequ´e, A., Coussement, K., Gayler, R., & Lessmann, S. (2017). Approaches for credit
+While increasing efficiency, this pragmatic approach raises questions scorecard calibration: An empirical analysis. Knowledge-Based Systems, 134,
+213–227.
+regarding the representativeness of the samples and hyperparameters.
+Bergstra, J., Komer, B., Eliasmith, C., Yamins, D., & Cox, D. D. (2015). Hyperopt: A
+Sample sizes and repetitions can be increased for more robust results. python library for model selection and hyperparameter optimization. Computational
+Another option would be to examine other data resampling techniques Science & Discovery, 8(1), Article 014008.
+such as cross-validation and bootstrapping. When the class-imbalance Breiman, L. (2001). Random forests. Machine Learning, 45(1), 5–32.
+Breiman, L., Friedman, J., Olshen, R., & Stone, C. (1984). Classification and Regression
+ratio was extreme, we did not find any noticeable benefit from the Trees.
+advanced loss function. Considering that our proposed advanced loss Calabrese, R., Marra, G., & Angela Osmetti, S. (2016). Bankruptcy prediction of small and
+functions include other established loss functions as special cases, fine- medium enterprises using a flexible binary generalized extreme value model. Journal
+of the operational research society, 67(4), 604–615.
+tuning the hyperparameter search range should assist in achieving at Cao, P., Zhao, D., & Zaiane, O. (2013). An optimized cost-sensitive SVM for imbalanced data
+least the same performance as the base models. learning. Paper presented at the Pacific-Asia conference on knowledge discovery and
+Our method of central tendency assessment relies on the median, and data mining.
+Chen, T., & Guestrin, C. (2016). Xgboost: A scalable tree boosting system. Paper presented
+we use out-of-time testing. Thus, any outliers, skews, or over-optimistic
+at the Proceedings of the 22nd acm sigkdd international conference on knowledge
+results should not significantly influence our conclusions. Furthermore, discovery and data mining.
+to ascertain the significance of performance disparities, we incorporated Chen, M.-H., Dey, D. K., & Shao, Q.-M. (1999). A new skewed link model for
+consistent statistical tests into our analysis. As a result of this study’s dichotomous quantal response data. Journal of the American Statistical Association, 94
+(448), 1172–1186.
+model evaluation approach, the validity of our findings is enhanced. Chicco, D., & Jurman, G. (2020). The advantages of the Matthews correlation coefficient
+(MCC) over F1 score and accuracy in binary classification evaluation. BMC Genomics,
+21(1), 1–13.
+7.3. Future research
+Cohen, S., Dagan, N., Cohen-Inger, N., Ofer, D., & Rokach, L. (2021). ICU survival
+prediction incorporating test-time augmentation to improve the accuracy of
+Our future research endeavours will extend the scope of this study by ensemble-based models. IEEE Access, 9, 91584–91592.
+exploring a variety of avenues, including: Coles, S., Bawa, J., Trenner, L., & Dorazio, P. (2001). An introduction to statistical modeling
+of extreme values (Vol. 208). Springer.
+Dastile, X., Celik, T., & Potsane, M. (2020). Statistical and machine learning models in
+• Enhancing class-imbalanced data modelling: we intend to integrate credit scoring: A systematic literature survey. Applied Soft Computing, 91, Article
+GBDT models with advanced loss functions within hybrid classifiers, 106263.
+Deotte, C., Liu, B., Schifferer, B., & Titericz, G. (2021). GPU accelerated boosted trees and
+such as EasyEnsemble, as well as heterogeneous ensemble classifiers. deep neural networks for better recommender systems. In: RecSysChallenge’21:
+• Broadening the application of advanced loss functions: we also Proceedings of the Recommender Systems Challenge 2021 (pp. 7–14).
+intend to investigate the applicability of advanced loss functions in Dorogush, A. V., Ershov, V., & Gulin, A. (2018). CatBoost: gradient boosting with
+categorical features support. arXiv preprint arXiv:1810.11363.
+diverse machine learning methodologies such as artificial neural Fern´andez, A., Garcia, S., Herrera, F., & Chawla, N. V. (2018). SMOTE for learning from
+networks, contemporary data augmentation techniques such as imbalanced data: Progress and challenges, marking the 15-year anniversary. Journal
+GANs, as well as other GBDT implementations such as LightGBM. of Artificial Intelligence Research, 61, 863–905.
+• Targeting diverse performance metrics: instead of focusing solely on Fried Am nna an l,
+s
+J o.
+f
+H S.
+t
+a( t2 is0 t0 ic1 s,) .
+1
+G 1r 8e 9e –d 1y
+2
+f 3u 2n
+.
+ction approximation: A gradient boosting machine.
+optimizing discrimination power, our future research will explore García, V., Marqu´es, A. I., & S´anchez, J. S. (2015). An insight into the experimental
+alternative performance metrics such as accuracy and/or design for credit risk and corporate bankruptcy prediction systems. Journal of
+Intelligent Information Systems, 44(1), 159–189.
+profitability. García, V., Marqu´es, A. I., & S´anchez, J. S. (2019). Exploring the synergetic effects of
+• Evaluating effectiveness in different scenarios: not limited to credit sample types on the performance of ensembles for credit risk and corporate
+scoring, we also intend to apply the advanced loss functions to bankruptcy prediction. Information Fusion, 47, 88–101.
+complex datasets with small disjuncts, overlapping classes, mixed Ghosh, I., & Alzaatreh, A. (2018). A new class of generalized logistic distribution.
+Communications in Statistics-Theory and Methods, 47(9), 2043–2055.
+types of predictors, and multi-class targets. Haixiang, G., Yijing, L., Shang, J., Mingyun, G., Yuanyue, H., & Bing, G. (2017). Learning
+from class-imbalanced data: Review of methods and applications. Expert Systems with
+We hope that by focusing our future research in these directions, we Applications, 73, 220–239.
+Hand, D. J. (2009). Measuring classifier performance: A coherent alternative to the area
+will be able to theoretically and practically improve the use of advanced under the ROC curve. Machine Learning, 77(1), 103–123.
+loss functions in machine learning. Hand, D. J., & Anagnostopoulos, C. (2014). A better Beta for the H measure of
+classification performance. Pattern Recognition Letters, 40, 41–46.
+Jadon, S. (2020). A survey of loss functions for semantic segmentation. Paper presented at
+Declaration of Competing Interest
+the 2020 IEEE Conference on Computational Intelligence in Bioinformatics and
+Computational Biology (CIBCB).
+The authors declare that they have no known competing financial Ke, G., Meng, Q., Finley, T., Wang, T., Chen, W., Ma, W., … Liu, T.-Y. (2017). Lightgbm:
+A highly efficient gradient boosting decision tree. Advances in Neural Information
+interests or personal relationships that could have appeared to influence
+Processing Systems, 30.
+the work reported in this paper. Kim, E., Lee, J., Shin, H., Yang, H., Cho, S., Nam, S.-K., … Kim, J.-I. (2019). Champion-
+challenger analysis for credit card fraud detection: Hybrid ensemble and deep
+learning. Expert Systems with Applications, 128, 214–224.
+Data availability
+Kotz, S., & Nadarajah, S. (2000). Extreme value distributions: Theory and applications.
+World Scientific.
+The manuscript provides information on how to access supporting Krawczyk, B. (2016). Learning from imbalanced data: Open challenges and future
+directions. Progress in Artificial Intelligence, 5(4), 221–232.
+data and code.
+Kruskal, W. H., & Wallis, W. A. (1952). Use of ranks in one-criterion variance analysis.
+Journal of the American Statistical Association, 47(260), 583–621.
+Appendix A. Supplementary material Lessmann, S., Baesens, B., Seow, H.-V., & Thomas, L. C. (2015). Benchmarking state-of-
+the-art classification algorithms for credit scoring: An update of research. European
+Journal of Operational Research, 247(1), 124–136.
+Supplementary data to this article can be found online at https://doi.
+org/10.1016/j.eswa.2023.121876.
+15
+
+=== PAGE 16 ===
+J. Mushava and M. Murray E x p e r t S y s t e m s W i t h A p p l i c a t i o n s 238(2024)121876
+Li, Z., Kamnitsas, K., & Glocker, B. (2019). Overfitting of neural nets under class imbalance: Schifferer, B., Titericz, G., Deotte, C., Henkel, C., Onodera, K., Liu, J., … Erdem, A.
+Analysis and improvements for segmentation. Paper presented at the International (2020). GPU accelerated feature engineering and training for recommender systems.
+Conference on Medical Image Computing and Computer-Assisted Intervention. In: Proceedings of the recommender systems challenge 2020 (pp. 16–23).
+Lin, T.-Y., Goyal, P., Girshick, R., He, K., & Dolla´r, P. (2017). Focal loss for dense object Siddiqi, N. (2012). Credit risk scorecards: developing and implementing intelligent credit
+detection. Paper presented at the Proceedings of the IEEE international conference on scoring, 3. John Wiley & Sons.
+computer vision. Snoek, J., Larochelle, H., & Adams, R. P. (2012). Practical bayesian optimization of
+Liu, X.-Y., Wu, J., & Zhou, Z.-H. (2008). Exploratory undersampling for class-imbalance machine learning algorithms. Paper presented at the Advances in neural information
+learning. IEEE Transactions on Systems, Man, and Cybernetics, Part B (Cybernetics), 39 processing systems.
+(2), 539–550. Sousa, M. R., Gama, J., & Branda˜o, E. (2016). Dynamic credit score modeling with short-
+Lundberg, S. M., & Lee, S.-I. (2017). A unified approach to interpreting model term and long-term memories: the case of Freddie Mac’s database.
+predictions. Advances in neural information processing systems, 30. Trisanto, D., Rismawati, N., Mulya, M. F., & Kurniadi, F. I. (2021). Modified focal loss in
+Markov, A., Seleznyova, Z., & Lapshin, V. (2022). Credit scoring methods: Latest trends imbalanced XGBoost for credit card fraud detection. International Journal of Intelligent
+and points to consider. The Journal of Finance and Data Science. Engineering & Systems.
+Murphy, K. P. (2012). Machine learning: A probabilistic perspective: MIT press. Wang, C., Deng, C., & Wang, S. (2020). Imbalance-XGBoost: Leveraging weighted and
+Mushava, J., & Murray, M. (2022). A novel XGBoost extension for credit scoring class- focal losses for binary label-imbalanced classification with XGBoost. Pattern
+imbalanced data combining a generalized extreme value link and a modified focal Recognition Letters, 136, 190–197.
+loss function. Expert Systems with Applications, 202, Article 117233. Wolpert, D. H. (1992). Stacked generalization. Neural Networks, 5(2), 241–259.
+Mushava, J. (2023). Credit scoring with class imbalance data: An out-of-sample and out-of- Wu, F., Liu, Y., Gazo, R., Bedrich, B., & Qu, X. (2022). Some Practice for Improving the
+time perspective. Available from https://data.mendeley.com/datasets/bzr2rxttvz. Search Results of E-commerce. arXiv preprint arXiv:2208.00108.
+O’Brien, R., & Ishwaran, H. (2019). A random forests quantile classifier for class Xia, Y., Liu, C., Da, B., & Xie, F. (2018). A novel heterogeneous ensemble credit scoring
+imbalanced data. Pattern Recognition, 90, 232–249. model based on bstacking approach. Expert Systems with Applications, 93, 182–199.
+Owen, S. (2021). How (Not) to Tune Your Model With Hyperopt. Available from https:// Xia, Y., Liu, C., Li, Y., & Liu, N. (2017). A boosted decision tree approach using Bayesian
+www.databricks.com/blog/2021/04/15/how-not-to-tune-your-model-with- hyper-parameter optimization for credit scoring. Expert Systems with Applications, 78,
+hyperopt.html#:~:text=However%2C%20Hyperopt’s%20tuning%20process%20is, 225–241.
+of%20trials%2C%20is%20also%2032. Xia, Y., Liu, C., & Liu, N. (2017). Cost-sensitive boosted tree for loan evaluation in peer-
+Prasetyo, R. B., Kuswanto, H., Iriawan, N., & Ulama, B. S. S. (2020). Binomial regression to-peer lending. Electronic Commerce Research and Applications, 24, 30–49.
+models with a flexible generalized logit link function. Symmetry, 12(2), 221. Yang, Q., & Wu, X. (2006). 10 challenging problems in data mining research.
+Salehi, S. S. M., Erdogmus, D., & Gholipour, A. (2017). Tversky loss function for image International Journal of Information Technology & Decision Making, 5(04), 597–604.
+segmentation using 3D fully convolutional deep networks. Paper presented at the Yeung, M., Sala, E., Scho¨nlieb, C.-B., & Rundo, L. (2022). Unified Focal loss: Generalising
+International workshop on machine learning in medical imaging. Dice and cross entropy-based losses to handle class imbalanced medical image
+Sampath, V., Maurtua, I., Aguilar Martin, J. J., & Gutierrez, A. (2021). A survey on segmentation. Computerized Medical Imaging and Graphics, 95, Article 102026.
+generative adversarial networks for imbalance problems in computer vision tasks. Zhang, P., Zheng, L., Yan, R., Li, C., Hu, R., Zhou, S., … Liu, Q. (2022). Multiclass Product
+Journal of Big Data, 8, 1–59. Classification Based On Multilingual Model and LightGBM (Team: Uni).
+Schapire, R. E. (1999). A brief introduction to boosting. Paper presented at the Ijcai. Zhou, X., Yao, C., Wen, H., Wang, Y., Zhou, S., He, W., & Liang, J. (2017). EAST: an
+efficient and accurate scene text detector. Paper presented at the Proceedings of the
+IEEE conference on Computer Vision and Pattern Recognition.
+16
