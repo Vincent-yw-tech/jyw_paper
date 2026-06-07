@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BA-cWGAN-GP 算法框架解析</title>
+<style>
+  :root {
+    --blue: #0366d6;
+    --blue-light: #e8f4f8;
+    --yellow: #f0ad4e;
+    --yellow-light: #fff8e7;
+    --green: #28a745;
+    --green-light: #e6f9ed;
+    --red: #dc3545;
+    --red-light: #ffeef0;
+    --gray: #6c757d;
+    --gray-light: #f6f8fa;
+    --dark: #24292e;
+    --border: #e1e4e8;
+    --radius: 10px;
+    --shadow: 0 2px 8px rgba(0,0,0,.08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: #f0f3f6; color: var(--dark); line-height: 1.7;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff; padding: 48px 24px 36px; text-align: center;
+  }
+  .header h1 { font-size: 2rem; margin-bottom: 8px; letter-spacing: .5px; }
+  .header .sub { font-size: .95rem; opacity: .75; }
+  .header .badge {
+    display: inline-block; margin-top: 16px; padding: 4px 16px;
+    border-radius: 20px; font-size: .82rem; letter-spacing: 1px;
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+  }
+
+  /* ── Layout ── */
+  .container { max-width: 1060px; margin: 0 auto; padding: 28px 20px 60px; }
+  .section {
+    background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+    margin-bottom: 28px; overflow: hidden;
+  }
+  .section-header {
+    padding: 18px 28px; font-size: 1.15rem; font-weight: 700;
+    display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border);
+  }
+  .section-body { padding: 24px 28px; }
+
+  /* ── Phase colors ── */
+  .phase-input .section-header { background: var(--blue-light); color: var(--blue); }
+  .phase1 .section-header { background: var(--yellow-light); color: #b8860b; }
+  .phase2 .section-header { background: #fff3e0; color: #e67e22; }
+  .phase3 .section-header { background: var(--green-light); color: #1e7e34; }
+  .phase-output .section-header { background: #f3e8ff; color: #7c3aed; }
+
+  .phase-num {
+    width: 32px; height: 32px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-weight: 700; font-size: .9rem;
+    color: #fff; flex-shrink: 0;
+  }
+  .phase-input .phase-num { background: var(--blue); }
+  .phase1 .phase-num { background: var(--yellow); }
+  .phase2 .phase-num { background: #e67e22; }
+  .phase3 .phase-num { background: var(--green); }
+  .phase-output .phase-num { background: #7c3aed; }
+
+  /* ── Flow arrows between sections ── */
+  .flow-arrow {
+    text-align: center; padding: 4px 0; font-size: 1.6rem;
+    color: var(--gray); opacity: .6; letter-spacing: 6px;
+  }
+
+  /* ── Grids ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+
+  @media (max-width: 760px) {
+    .grid2, .grid3, .grid4 { grid-template-columns: 1fr; }
+  }
+
+  /* ── Cards ── */
+  .card {
+    border: 1px solid var(--border); border-radius: 8px; padding: 18px;
+    background: #fafbfc;
+  }
+  .card h4 { font-size: .92rem; margin-bottom: 8px; }
+  .card p, .card li { font-size: .87rem; color: #555; }
+  .card ul { padding-left: 18px; margin-top: 6px; }
+  .card-accent {
+    border-left: 4px solid var(--green); background: var(--green-light);
+    border-radius: 0 8px 8px 0;
+  }
+  .card-warn {
+    border-left: 4px solid var(--yellow); background: var(--yellow-light);
+    border-radius: 0 8px 8px 0;
+  }
+
+  /* ── Architecture diagram ── */
+  .arch-diagram {
+    display: flex; align-items: stretch; justify-content: center;
+    gap: 0; flex-wrap: wrap; margin: 16px 0;
+  }
+  .arch-block {
+    border: 2px solid var(--border); border-radius: var(--radius);
+    padding: 16px 20px; text-align: center; min-width: 120px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .arch-block.noise { background: #f0f0ff; border-color: #a0a0e0; }
+  .arch-block.cond  { background: var(--yellow-light); border-color: var(--yellow); }
+  .arch-block.gen   { background: var(--green-light); border-color: var(--green); }
+  .arch-block.disc  { background: var(--red-light); border-color: var(--red); }
+  .arch-block.out   { background: var(--blue-light); border-color: var(--blue); }
+
+  .arch-arrow {
+    display: flex; align-items: center; padding: 0 8px;
+    font-size: 1.4rem; color: var(--gray);
+  }
+
+  .arch-label {
+    font-size: .75rem; color: var(--gray); font-weight: 600; letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  .arch-value {
+    font-size: .9rem; font-weight: 700; font-family: "SF Mono","Consolas",monospace;
+  }
+
+  /* ── Loss formula box ── */
+  .formula-box {
+    background: #1a1a2e; color: #e0e0e0; border-radius: 8px;
+    padding: 20px 24px; font-family: "SF Mono","Consolas","Courier New",monospace;
+    font-size: .85rem; line-height: 1.8; overflow-x: auto;
+    margin: 12px 0;
+  }
+  .formula-box .hl { color: #ffd700; }
+  .formula-box .hl2 { color: #5bc0de; }
+  .formula-box .hl3 { color: #28a745; }
+  .formula-box .cmt { color: #8b949e; }
+
+  /* ── Comparison table ── */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  .compare-table th {
+    background: var(--gray-light); padding: 10px 14px; text-align: left;
+    font-weight: 600; border-bottom: 2px solid var(--border);
+  }
+  .compare-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .compare-table tr:hover { background: #fafbfc; }
+  .compare-table .old { background: #fff5f5; }
+  .compare-table .new { background: #f0fff4; }
+
+  /* ── Step list ── */
+  .step-list { counter-reset: step; list-style: none; padding: 0; }
+  .step-list li {
+    counter-increment: step; padding: 12px 16px 12px 52px;
+    position: relative; margin-bottom: 8px; background: #fafbfc;
+    border-radius: 8px; border: 1px solid var(--border);
+    font-size: .87rem;
+  }
+  .step-list li::before {
+    content: counter(step);
+    position: absolute; left: 12px; top: 12px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--blue); color: #fff; text-align: center;
+    line-height: 28px; font-weight: 700; font-size: .8rem;
+  }
+
+  /* ── Boundary visualization ── */
+  .boundary-viz {
+    display: flex; align-items: center; justify-content: center;
+    gap: 20px; flex-wrap: wrap; margin: 16px 0;
+  }
+  .boundary-bar {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .boundary-track {
+    width: 280px; height: 14px; border-radius: 7px;
+    background: linear-gradient(to right, #28a745 0%, #ffc107 50%, #dc3545 100%);
+    position: relative;
+  }
+  .boundary-marker {
+    position: absolute; top: -6px; width: 4px; height: 26px; border-radius: 2px;
+    background: #000;
+  }
+
+  /* ── Tag ── */
+  .tag {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: .76rem; font-weight: 600;
+  }
+  .tag-blue { background: var(--blue-light); color: var(--blue); }
+  .tag-green { background: var(--green-light); color: #1e7e34; }
+  .tag-yellow { background: var(--yellow-light); color: #b8860b; }
+  .tag-red { background: var(--red-light); color: var(--red); }
+
+  /* ── Pseudo-code block ── */
+  .pseudocode {
+    background: #f6f8fa; border: 1px solid var(--border); border-radius: 8px;
+    padding: 18px 22px; font-family: "SF Mono","Consolas",monospace;
+    font-size: .82rem; line-height: 1.7; overflow-x: auto;
+  }
+  .pseudocode .kw { color: #d73a49; font-weight: 600; }
+  .pseudocode .fn { color: #6f42c1; }
+  .pseudocode .str { color: #032f62; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center; padding: 28px; color: var(--gray); font-size: .82rem;
+  }
+
+  /* ── Highlights ── */
+  .highlight-num { font-size: 1.3rem; font-weight: 800; }
+  .arrow-down { text-align: center; font-size: 1.4rem; color: var(--gray); padding: 4px 0; }
+
+  /* ── Loss flow ── */
+  .loss-flow {
+    display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+    margin: 12px 0;
+  }
+  .loss-item {
+    padding: 10px 16px; border-radius: 8px; font-size: .82rem;
+    text-align: center; min-width: 140px;
+  }
+  .loss-adv { background: #ffeef0; border: 1.5px solid #dc3545; }
+  .loss-bnd { background: #e6f9ed; border: 1.5px solid #28a745; }
+  .loss-r   { background: #fff8e7; border: 1.5px solid #f0ad4e; }
+  .loss-total { background: #e8f4f8; border: 2px solid #0366d6; }
+
+  /* ── Process flow row ── */
+  .process-row {
+    display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+    justify-content: center; margin: 18px 0;
+  }
+  .process-node {
+    padding: 14px 20px; text-align: center; border-radius: 10px;
+    min-width: 100px; font-weight: 600; font-size: .85rem;
+  }
+  .process-arrow {
+    padding: 0 10px; font-size: 1.3rem; color: var(--gray);
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<div class="header">
+  <h1>BA-cWGAN-GP 算法框架解析</h1>
+  <div class="sub">Boundary-Aware Conditional Wasserstein GAN with Gradient Penalty</div>
+  <div class="badge">边界感知 · 条件生成 · 梯度惩罚 · 右删失信息利用</div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════ OVERVIEW ═══════════════ -->
+<div class="section">
+<div class="section-header" style="background:#e8eaf6; color:#3f51b5;">
+  <span class="phase-num" style="background:#3f51b5;">◉</span> 算法全景：三阶段框架
+</div>
+<div class="section-body">
+
+  <div class="process-row">
+    <div class="process-node" style="background:var(--blue-light);border:2px solid var(--blue);">
+      输入数据<br><small>完整观测 + 右删失</small>
+    </div>
+    <div class="process-arrow">→</div>
+    <div class="process-node" style="background:var(--yellow-light);border:2px solid var(--yellow);">
+      Phase 1<br><small>违约倾向得分 r</small>
+    </div>
+    <div class="process-arrow">→</div>
+    <div class="process-node" style="background:#fff3e0;border:2px solid #e67e22;">
+      Phase 2<br><small>决策边界 d, w</small>
+    </div>
+    <div class="process-arrow">→</div>
+    <div class="process-node" style="background:var(--green-light);border:2px solid var(--green);">
+      Phase 3<br><small>BA-cWGAN-GP 生成</small>
+    </div>
+    <div class="process-arrow">→</div>
+    <div class="process-node" style="background:#f3e8ff;border:2px solid #7c3aed;">
+      输出<br><small>边界合成违约样本</small>
+    </div>
+  </div>
+
+  <p style="text-align:center; color:var(--gray); font-size:.85rem; margin-top:8px;">
+    Phase 1 &amp; 2 = <strong>信息提取</strong>（为生成做准备）&nbsp;&nbsp;|&nbsp;&nbsp;Phase 3 = <strong>核心生成</strong>（本文创新点）
+  </p>
+</div>
+</div>
+
+<div class="flow-arrow">▼</div>
+
+<!-- ═══════════════ INPUT ═══════════════ -->
+<div class="section phase-input">
+<div class="section-header"><span class="phase-num">入</span> 输入数据</div>
+<div class="section-body">
+  <div class="grid2">
+    <div class="card">
+      <h4>① 2022Q1–2023Q3 完整观测数据</h4>
+      <ul>
+        <li>约 1,015,587 笔贷款，含 <strong>DFlag 标签</strong></li>
+        <li>违约样本可追溯到 <strong>"首次违约的月份"</strong></li>
+        <li>观测窗口完整（满 24 个月）</li>
+        <li>用于：Phase 1（训练 speed_clf）、Phase 2（训练 base_clf）、Phase 3（GAN 训练）</li>
+      </ul>
+    </div>
+    <div class="card card-warn">
+      <h4>② 2023Q4–2025Q2 纯违约数据（右删失）</h4>
+      <ul>
+        <li><strong>8,150 笔</strong>纯违约贷款</li>
+        <li>没有 DFlag=0 的对照样本 &rarr; 无法直接用于分类训练</li>
+        <li>违约速度（Early / Late）未知 &rarr; 需由 speed_clf <strong>推断</strong></li>
+        <li>用于：Phase 1（预测 r 值，提取违约倾向信号）</li>
+      </ul>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:16px;padding:12px;background:var(--gray-light);border-radius:8px;font-size:.85rem;">
+    <strong>核心洞察</strong>：8,150 笔右删失违约样本在传统方法中会被直接丢弃。
+    BA-cWGAN-GP 通过 Phase 1 从中<strong>"榨取"违约倾向信号 r</strong>，间接利用这批数据引导生成器。
+  </div>
+</div>
+</div>
+
+<div class="flow-arrow">▼</div>
+
+<!-- ═══════════════ PHASE 1 ═══════════════ -->
+<div class="section phase1">
+<div class="section-header"><span class="phase-num">1</span> Phase 1：违约倾向得分提取 — 从右删失样本中"榨取"信息</div>
+<div class="section-body">
+  <div class="grid2">
+    <div>
+      <h4 style="margin-bottom:10px;">📋 操作流程</h4>
+      <ol class="step-list">
+        <li>从月度 Performance 数据中回溯每笔违约贷款的<strong>首次违约月份</strong></li>
+        <li>贴标签：first_default_month &le; 12 → <span class="tag tag-red">Early Default</span>；&gt;12 → <span class="tag tag-blue">Late Default</span></li>
+        <li>训练 <strong>speed_clf</strong>（XGBoost 二分类器）学习"特征 → 违约速度"映射</li>
+        <li>对<strong>全部违约样本</strong>（含右删失 8,150 笔）预测 r = P(Early Default)</li>
+      </ol>
+    </div>
+    <div>
+      <h4 style="margin-bottom:10px;">📊 输出</h4>
+      <div class="card card-accent">
+        <p><strong>违约倾向得分 r &isin; [0, 1]</strong></p>
+        <ul>
+          <li>r 越大 = 越倾向<strong>快速违约</strong>（高风险模式）</li>
+          <li>r 越小 = 越倾向<strong>缓慢违约</strong>（低风险模式）</li>
+        </ul>
+        <p style="margin-top:8px;font-size:.82rem;color:var(--gray);">
+          预实验中 speed_clf 在 27,261 条标注样本上训练，r 分布：mean=0.406, std=0.074
+        </p>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:16px;padding:14px;background:var(--yellow-light);border-radius:8px;font-size:.85rem;">
+    <strong>💡 本质</strong>：右删失样本"我知道它是违约，但不知道第几个月违约" →
+    speed_clf 推断 "这笔有 87% 概率属于快速违约型" →
+    r = 0.87 作为 Phase 3 的条件引导信号
+  </div>
+</div>
+</div>
+
+<div class="flow-arrow">▼</div>
+
+<!-- ═══════════════ PHASE 2 ═══════════════ -->
+<div class="section phase2">
+<div class="section-header"><span class="phase-num">2</span> Phase 2：决策边界识别 — 找到最有价值的违约样本</div>
+<div class="section-body">
+  <div class="grid2">
+    <div>
+      <h4 style="margin-bottom:10px;">📋 操作流程</h4>
+      <ol class="step-list">
+        <li>在完整 GAN 训练集上训练 <strong>base_clf</strong>（XGBoost）</li>
+        <li>对每个违约样本预测违约概率 p</li>
+        <li>计算<strong>边界距离 d = |p &minus; 0.5|</strong></li>
+        <li>计算<strong>采样权重 w = 1 / (d + 0.01)</strong></li>
+        <li>训练 NN 代理模型实现知识蒸馏（用于 Phase 3 可微分边界损失）</li>
+      </ol>
+    </div>
+    <div>
+      <h4 style="margin-bottom:10px;">📊 边界距离含义</h4>
+      <table class="compare-table">
+        <tr><th>p 值</th><th>d 值</th><th>含义</th><th>生成优先级</th></tr>
+        <tr><td>0.92</td><td>0.42</td><td>分类器很确定是违约</td><td><span class="tag tag-blue">低 w=2.4</span></td></tr>
+        <tr style="background:#fff8e7;"><td>0.55</td><td>0.05</td><td>分类器很犹豫</td><td><span class="tag tag-yellow">高 w=16.7</span></td></tr>
+        <tr style="background:#f0fff4;"><td>0.48</td><td>0.02</td><td>分类器差点判为正常</td><td><span class="tag tag-green">最高 w=33.3</span></td></tr>
+      </table>
+      <p style="margin-top:10px;font-size:.82rem;color:var(--gray);">
+        预实验：NN 代理 r=0.983，边界一致性 94.2%，知识蒸馏成功
+      </p>
+    </div>
+  </div>
+
+  <!-- Boundary visualization -->
+  <div style="text-align:center;margin-top:18px;">
+    <p style="font-weight:700;margin-bottom:10px;">决策边界示意</p>
+    <div style="display:inline-block;text-align:left;font-family:monospace;font-size:.82rem;line-height:1.4;background:#fafbfc;padding:16px 24px;border-radius:8px;border:1px solid var(--border);">
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;○ ○ ○ ○ ○<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;○ ○ ○ ○ ○ ○ ○&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;○ = 正常样本（多数类）<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;○ ○ ○ ○ ○ ○ ○ ○<br>
+      &nbsp;&nbsp;&nbsp;○ ○ ○ ○ ○ ○ ○ ○ <span style="color:#dc3545;font-weight:700;">●</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#dc3545;font-weight:700;">●</span> = 违约样本（少数类）<br>
+      &nbsp;&nbsp;○ ○ ○ ○ ○ ○ ○ <span style="color:#dc3545;font-weight:700;">● ● ●</span><br>
+      &nbsp;&nbsp;○ ○ ○ ○ ○ ○ ○ <span style="color:#dc3545;font-weight:700;">● ● ●</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green);font-weight:700;">← 决策边界</span><br>
+      &nbsp;&nbsp;○ ○ ○ ○ ○ ○ <span style="color:#dc3545;font-weight:700;">● ● ● ●</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green);">━━━━━━━━━━━━</span><br>
+      &nbsp;&nbsp;○ ○ ○ ○ ○ <span style="color:#dc3545;font-weight:700;">● ● ● ● ●</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#dc3545;font-weight:700;">● ● ● ● ●</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#dc3545;font-weight:700;">● ● ●</span><br>
+      <br>
+      <span style="color:var(--green);font-weight:700;">→</span> 远离边界的 ● &rarr; 分类器非常确信 &rarr; 生成意义小<br>
+      <span style="color:var(--green);font-weight:700;">→</span> 靠近边界的 ● &rarr; 分类器最犹豫 &rarr; <strong>生成价值最大</strong>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="flow-arrow">▼</div>
+
+<!-- ═══════════════ PHASE 3 ═══════════════ -->
+<div class="section phase3">
+<div class="section-header"><span class="phase-num">3</span> Phase 3：BA-cWGAN-GP 定向生成 — 本文核心创新</div>
+<div class="section-body">
+
+  <!-- Comparison: WGAN-GP vs BA-cWGAN-GP -->
+  <h4 style="margin-bottom:12px;">🔀 标准 WGAN-GP vs 本文 BA-cWGAN-GP</h4>
+  <div class="grid2" style="margin-bottom:20px;">
+    <div class="card" style="background:#fff5f5;">
+      <h4>标准 WGAN-GP（盲生成）</h4>
+      <div style="text-align:center;padding:14px 0;">
+        <div style="font-weight:700;">z（噪声 100 维）</div>
+        <div class="arrow-down">↓</div>
+        <div class="arch-block gen" style="display:inline-block;">生成器 G</div>
+        <div class="arrow-down">↓</div>
+        <div style="font-weight:700;">x_fake</div>
+        <div style="font-size:.78rem;color:var(--gray);margin-top:4px;">随机生成，落在哪算哪</div>
+      </div>
+      <div style="font-size:.82rem;color:var(--gray);margin-top:6px;">
+        L<sub>G</sub> = &minus;D(G(z))
+      </div>
+    </div>
+    <div class="card" style="background:#f0fff4;">
+      <h4>BA-cWGAN-GP（边界感知条件生成）</h4>
+      <div style="text-align:center;padding:14px 0;">
+        <div style="display:flex;justify-content:center;gap:12px;font-weight:700;">
+          <span>z（噪声 100 维）</span><span>+</span><span style="color:#b8860b;">r（违约倾向 1 维）</span>
+        </div>
+        <div class="arrow-down">↓</div>
+        <div class="arch-block gen" style="display:inline-block;">生成器 G</div>
+        <div class="arrow-down">↓</div>
+        <div style="font-weight:700;">x_fake</div>
+        <div style="font-size:.78rem;color:var(--green);margin-top:4px;">定向生成，知道要什么"类型"的违约样本</div>
+      </div>
+      <div style="font-size:.82rem;color:var(--gray);margin-top:6px;">
+        L<sub>G</sub> = &minus;D(G(z|r))
+        <span style="color:#28a745;">+ λ<sub>b</sub>·L<sub>boundary</sub></span>
+        <span style="color:#f0ad4e;">+ λ<sub>r</sub>·L<sub>r</sub></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Architecture diagram -->
+  <h4 style="margin-bottom:12px;">🏗️ BA-cWGAN-GP 完整架构</h4>
+  <div style="text-align:center;overflow-x:auto;padding:10px 0;">
+
+    <!-- Top row: inputs -->
+    <div style="display:flex;align-items:flex-end;justify-content:center;gap:30px;flex-wrap:wrap;margin-bottom:8px;">
+      <div class="arch-block noise" style="min-width:100px;">
+        <div class="arch-label">噪声</div>
+        <div class="arch-value">z ~ N(0,1)</div>
+        <div style="font-size:.72rem;color:var(--gray);">100 维</div>
+      </div>
+      <div class="arch-block cond" style="min-width:100px;">
+        <div class="arch-label">违约倾向</div>
+        <div class="arch-value">r ∈ [0,1]</div>
+        <div style="font-size:.72rem;color:var(--gray);">1 维（Phase 1 产出）</div>
+      </div>
+      <div class="arch-block" style="min-width:100px;background:#e8e8f0;border-color:#999;">
+        <div class="arch-label">真实违约样本</div>
+        <div class="arch-value">x_real</div>
+        <div style="font-size:.72rem;color:var(--gray);">13 维特征</div>
+        <div style="font-size:.7rem;color:var(--red);">按 d 加权采样</div>
+      </div>
+    </div>
+
+    <!-- Concat arrow -->
+    <div style="text-align:center;margin:4px 0;font-size:.8rem;color:var(--gray);">
+      z_cond = [z, r] &nbsp;→&nbsp; 101 维
+    </div>
+
+    <!-- Middle row: G and D -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:8px;">
+      <div class="arch-block gen" style="min-width:180px;">
+        <div class="arch-label">生成器 G</div>
+        <div style="font-size:.75rem;font-family:monospace;color:var(--gray);line-height:1.5;">
+          101 → 256 → 512 → 256 → 13<br>
+          BatchNorm + LeakyReLU
+        </div>
+      </div>
+      <div style="font-size:1.4rem;color:var(--gray);">→</div>
+      <div style="text-align:center;">
+        <div class="arch-value">x_fake</div>
+        <div style="font-size:.72rem;color:var(--gray);">合成 13 维特征</div>
+      </div>
+      <div style="font-size:1.4rem;color:var(--gray);">→</div>
+      <div class="arch-block disc" style="min-width:180px;">
+        <div class="arch-label">判别器 D</div>
+        <div style="font-size:.75rem;font-family:monospace;color:var(--gray);line-height:1.5;">
+          13 → 256 → 512 → 256 → 1<br>
+          LeakyReLU
+        </div>
+      </div>
+      <div style="font-size:1.4rem;color:var(--gray);">→</div>
+      <div style="text-align:center;">
+        <div class="arch-value">score</div>
+        <div style="font-size:.72rem;color:var(--gray);">实数，越大越真</div>
+      </div>
+    </div>
+
+    <!-- Loss flow -->
+    <div style="margin-top:12px;">
+      <div style="font-weight:700;margin-bottom:6px;">生成器损失 L<sub>G</sub>（三项联合优化）</div>
+      <div class="loss-flow">
+        <div class="loss-item loss-adv">
+          <strong>L<sub>adv</sub>（对抗）</strong><br>
+          <span style="font-family:monospace;">&minus;D(G(z|r))</span><br>
+          <small style="color:var(--gray);">"生成样本要以假乱真"</small>
+        </div>
+        <div style="display:flex;align-items:center;font-weight:700;">+</div>
+        <div class="loss-item loss-bnd">
+          <strong>L<sub>boundary</sub>（边界）</strong><br>
+          <span style="font-family:monospace;">&minus;|base_clf(x_fake)&minus;0.5|</span><br>
+          <small style="color:var(--gray);">"要在分类器最拿不准的地方生成"</small><br>
+          <small>λ<sub>b</sub> = 0.1</small>
+        </div>
+        <div style="display:flex;align-items:center;font-weight:700;">+</div>
+        <div class="loss-item loss-r">
+          <strong>L<sub>r</sub>（违约倾向一致）</strong><br>
+          <span style="font-family:monospace;">|speed_clf(x_fake)&minus;r|</span><br>
+          <small style="color:var(--gray);">"违约速度模式要匹配条件 r"</small><br>
+          <small>λ<sub>r</sub> = 0.05</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- GP note -->
+    <div style="margin-top:12px;padding:10px;background:var(--gray-light);border-radius:6px;font-size:.82rem;text-align:center;">
+      <strong>判别器损失</strong>（与 WGAN-GP 一致）：
+      L<sub>D</sub> = D(x_fake) &minus; D(x_real) + 10.0 · GP ，
+      其中 GP = 𝔼[(∥∇<sub>x̂</sub>D(x̂)∥₂ &minus; 1)²]（梯度惩罚，保证训练稳定）
+    </div>
+  </div>
+
+  <!-- Boundary loss intuition -->
+  <h4 style="margin-top:20px;margin-bottom:10px;">🎯 边界损失的直观含义</h4>
+  <div style="overflow-x:auto;">
+    <table class="compare-table">
+      <tr><th>base_clf 对 x_fake 的预测</th><th>distance = |p &minus; 0.5|</th><th>边界损失值</th><th>效果</th></tr>
+      <tr class="old"><td>p = 0.95（"这肯定是违约"）</td><td>0.45</td><td style="font-family:monospace;">-0.45</td><td><span class="tag tag-red">被惩罚！</span></td></tr>
+      <tr style="background:#fff8e7;"><td>p = 0.55（"可能是违约吧"）</td><td>0.05</td><td style="font-family:monospace;">-0.05</td><td><span class="tag tag-yellow">几乎不惩罚</span></td></tr>
+      <tr class="new"><td>p = 0.50（"完全拿不准"）</td><td>0.00</td><td style="font-family:monospace;"> 0.00</td><td><span class="tag tag-green">理想状态！</span></td></tr>
+    </table>
+  </div>
+  <p style="text-align:center;margin-top:8px;font-size:.85rem;color:var(--gray);">
+    → 生成器被逼着往分类器最不确定的区域生成样本，这些样本对下游模型训练价值最大
+  </p>
+</div>
+</div>
+
+<div class="flow-arrow">▼</div>
+
+<!-- ═══════════════ OUTPUT ═══════════════ -->
+<div class="section phase-output">
+<div class="section-header"><span class="phase-num">出</span> 输出：高质量合成违约样本</div>
+<div class="section-body">
+  <div class="grid3">
+    <div class="card card-accent">
+      <h4>🎯 边界富集</h4>
+      <p>生成样本集中在决策边界附近（预实验：59.2% vs WGAN-GP 33.2%），对下游分类器训练价值最大</p>
+    </div>
+    <div class="card card-accent">
+      <h4>📐 条件可控</h4>
+      <p>通过调节 r 值可以定向生成"快速违约型"或"缓慢违约型"样本，满足不同应用场景需求</p>
+    </div>
+    <div class="card card-accent">
+      <h4>🔍 后筛选</h4>
+      <p>用 base_clf 检查生成质量：保留 p ∈ [0.3, 0.7] 的样本，丢弃远离边界的低质量生成</p>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:16px;padding:12px;background:#f3e8ff;border-radius:8px;font-size:.85rem;">
+    <strong>最终产出</strong>：合成违约样本 + GAN 训练集真实样本 → <strong>均衡训练集</strong> →
+    交给下游 Stacking 集成模型（第二章）做最终预测
+  </div>
+</div>
+</div>
+
+<div class="flow-arrow">▼</div>
+
+<!-- ═══════════════ DETAILED PSEUDOCODE ═══════════════ -->
+<div class="section">
+<div class="section-header" style="background:#f6f8fa; color:var(--dark);">
+  <span class="phase-num" style="background:var(--dark);">≈</span> 完整训练伪代码
+</div>
+<div class="section-body">
+<div class="pseudocode">
+<span class="cmt"># ===== Phase 1: 违约倾向得分 =====</span>
+<span class="kw">for</span> loan_id <span class="kw">in</span> default_loans:
+    <span class="cmt"># 从月度 Performance 数据中回溯首次违约月份</span>
+    first_default_month = find_first_dlq3_or_zbc_event(loan_id)
+
+<span class="cmt"># 贴标签：≤12月→Early, >12月→Late</span>
+y_speed = [1 <span class="kw">if</span> m &lt;= 12 <span class="kw">else</span> 0 <span class="kw">for</span> m <span class="kw">in</span> first_default_months]
+
+<span class="cmt"># 训练二分类器区分 Early vs Late</span>
+speed_clf = <span class="fn">XGBoostClassifier</span>()
+speed_clf.fit(X[default_loans], y_speed)
+
+<span class="cmt"># 对全部违约样本（含右删失）预测 r</span>
+r_train    = speed_clf.predict_proba(X[default_loans])[:, 1]
+r_censored = speed_clf.predict_proba(X[censored_loans])[:, 1]
+
+<span class="cmt"># ===== Phase 2: 决策边界识别 =====</span>
+base_clf = <span class="fn">XGBoostClassifier</span>()
+base_clf.fit(X_train, y_train)           <span class="cmt"># 完整训练集</span>
+
+p = base_clf.predict_proba(X_minority)[:, 1]
+d = |p - 0.5|                            <span class="cmt"># 边界距离</span>
+w = 1 / (d + 0.01)                       <span class="cmt"># 加权采样权重</span>
+
+<span class="cmt"># 训练 NN 代理模型（知识蒸馏，用于 Phase 3 可微分边界损失）</span>
+surrogate_base = <span class="fn">NN</span>(); surrogate_base.fit(X_minority, p)
+surrogate_speed = <span class="fn">NN</span>(); surrogate_speed.fit(X_minority, r)
+
+<span class="cmt"># ===== Phase 3: BA-cWGAN-GP 训练 =====</span>
+G = <span class="fn">Generator</span>(input_dim=101)          <span class="cmt"># 100(z) + 1(r)</span>
+D = <span class="fn">Discriminator</span>(input_dim=13)
+
+<span class="kw">for</span> epoch <span class="kw">in</span> range(n_epochs):
+    <span class="kw">for</span> (x_real, r_batch) <span class="kw">in</span> <span class="fn">WeightedSampler</span>(X_minority, r_train, w):
+        <span class="cmt"># --- 训练判别器 ---</span>
+        z = randn(batch, 100); zc = [z, r_batch]
+        x_fake = G(zc).detach()
+        L_D = D(x_fake).mean() - D(x_real).mean() + <span class="hl">10.0 * GP</span>
+        D_optimizer.step(L_D)
+
+        <span class="cmt"># --- 每 5 步训练一次生成器 ---</span>
+        <span class="kw">if</span> step % 5 == 0:
+            x_fake = G([randn(batch,100), r_batch])
+
+            L_adv      = <span class="hl">-D(x_fake).mean()</span>
+            L_boundary = <span class="hl2">-|surrogate_base(x_fake) - 0.5|.mean()</span>
+            L_r        = <span class="hl3">|surrogate_speed(x_fake) - r_batch|.mean()</span>
+
+            L_G = L_adv + <span class="hl2">0.1 * L_boundary</span> + <span class="hl3">0.05 * L_r</span>
+            G_optimizer.step(L_G)
+
+<span class="cmt"># ===== 生成 + 筛选 =====</span>
+synthetic = []
+<span class="kw">while</span> len(synthetic) &lt; target:
+    r_sample = sample_from_empirical_r_distribution(batch)
+    x_fake = G([randn(batch,100), r_sample])
+    prob = base_clf.predict_proba(x_fake)[:, 1]
+    synthetic.extend(x_fake[(prob &gt;= 0.3) &amp; (prob &lt;= 0.7)])
+</div>
+</div>
+</div>
+
+<!-- ═══════════════ COMPARISON ═══════════════ -->
+<div class="section">
+<div class="section-header" style="background:#e8eaf6; color:#3f51b5;">
+  <span class="phase-num" style="background:#3f51b5;">Δ</span> 两项改进总结
+</div>
+<div class="section-body">
+  <table class="compare-table">
+    <tr>
+      <th></th>
+      <th style="text-align:center;">标准 WGAN-GP</th>
+      <th style="text-align:center;background:#f0fff4;">BA-cWGAN-GP（本文）</th>
+    </tr>
+    <tr>
+      <td><strong>生成器输入</strong></td>
+      <td style="text-align:center;">z（100 维噪声）</td>
+      <td style="text-align:center;background:#f0fff4;">[z, r]（101 维：噪声 + 违约倾向）</td>
+    </tr>
+    <tr>
+      <td><strong>生成器损失</strong></td>
+      <td style="text-align:center;">L_adv</td>
+      <td style="text-align:center;background:#f0fff4;">L_adv + λ_b·L_boundary + λ_r·L_r</td>
+    </tr>
+    <tr>
+      <td><strong>训练采样</strong></td>
+      <td style="text-align:center;">均匀随机采样</td>
+      <td style="text-align:center;background:#f0fff4;">按边界距离加权采样（边界样本更频繁）</td>
+    </tr>
+    <tr>
+      <td><strong>判別器 / GP</strong></td>
+      <td style="text-align:center;" colspan="2">完全一致（L_D、λ_gp=10.0、n_critic=5）</td>
+    </tr>
+    <tr>
+      <td><strong>生成样本特征</strong></td>
+      <td style="text-align:center;">随机分布在违约分布各处</td>
+      <td style="text-align:center;background:#f0fff4;">聚集在决策边界附近 + 匹配指定违约速度模式</td>
+    </tr>
+    <tr>
+      <td><strong>代码改动量</strong></td>
+      <td style="text-align:center;">—</td>
+      <td style="text-align:center;background:#f0fff4;">核心仅 ~10 行（输入端 +1 维、损失 +2 项、加权采样）</td>
+    </tr>
+  </table>
+</div>
+</div>
+
+<!-- ═══════════════ KEY PARAMETERS ═══════════════ -->
+<div class="section">
+<div class="section-header" style="background:var(--gray-light); color:var(--dark);">
+  <span class="phase-num" style="background:var(--gray);">⚙</span> 关键超参数
+</div>
+<div class="section-body">
+  <div class="grid4">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:.75rem;color:var(--gray);">噪声维度</div>
+      <div class="highlight-num">100</div>
+      <div style="font-size:.78rem;">z_dim</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:.75rem;color:var(--gray);">梯度惩罚系数</div>
+      <div class="highlight-num">10.0</div>
+      <div style="font-size:.78rem;">λ_gp</div>
+    </div>
+    <div class="card card-accent" style="text-align:center;">
+      <div style="font-size:.75rem;color:var(--gray);">边界损失权重</div>
+      <div class="highlight-num">0.1</div>
+      <div style="font-size:.78rem;">λ_boundary</div>
+    </div>
+    <div class="card card-warn" style="text-align:center;">
+      <div style="font-size:.75rem;color:var(--gray);">r 一致性权重</div>
+      <div class="highlight-num">0.05</div>
+      <div style="font-size:.78rem;">λ_r</div>
+    </div>
+  </div>
+  <div class="grid4" style="margin-top:14px;">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:.75rem;color:var(--gray);">D/G 更新比</div>
+      <div class="highlight-num">5:1</div>
+      <div style="font-size:.78rem;">n_critic</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:.75rem;color:var(--gray);">批次大小</div>
+      <div class="highlight-num">256</div>
+      <div style="font-size:.78rem;">batch_size</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:.75rem;color:var(--gray);">学习率</div>
+      <div class="highlight-num">1×10⁻⁴</div>
+      <div style="font-size:.78rem;">Adam</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:.75rem;color:var(--gray);">训练轮数</div>
+      <div class="highlight-num">200-5000</div>
+      <div style="font-size:.78rem;">epochs</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<div class="footer">
+  BA-cWGAN-GP: Boundary-Aware Conditional WGAN-GP &nbsp;|&nbsp;
+  跨经济周期的信贷风险预测研究 &nbsp;|&nbsp; 2026
+</div>
+
+</div>
+</body>
+</html>
